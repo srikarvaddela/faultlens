@@ -9,3 +9,4 @@ __pycache__/
 !.env.example
 playwright-report/
 test-results/
+*.tsbuildinfo

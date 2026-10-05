@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: faultlens
+      POSTGRES_USER: faultlens
+      POSTGRES_PASSWORD: local-dev-only
+    volumes:
+      - database:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U faultlens -d faultlens"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://faultlens:local-dev-only@db:5432/faultlens
+    depends_on:
+      db:
+        condition: service_healthy
+  frontend:
+    build: ./frontend
+    ports:
+      - '127.0.0.1:8080:80'
+    depends_on:
+      - backend
+
+volumes:
+  database:
