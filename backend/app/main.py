@@ -12,7 +12,7 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from .catalog import BY_ID, CATALOG, public_bug
-from .database import Experiment, Job, get_session, initialize_database
+from .database import Experiment, Job, ResearchImport, get_session, initialize_database
 from .evaluation import METHODS, evaluate, summarize
 from .jobs import enqueue, job_view
 
@@ -64,6 +64,19 @@ def catalog():
 def list_experiments(session: DB):
     experiments = session.scalars(select(Experiment).order_by(Experiment.created_at.desc()).limit(100)).all()
     return [{"id": exp.id, "name": exp.name, "created_at": exp.created_at, "summary": exp.payload["summary"], "bug_ids": exp.payload["bug_ids"], "methods": exp.payload["methods"]} for exp in experiments]
+
+
+@app.get("/api/research")
+def list_research(session: DB):
+    return [{"id": item.id, "name": item.name, "created_at": item.created_at, "run_count": item.payload["run_count"], "observation_count": item.payload["observation_count"]} for item in session.scalars(select(ResearchImport).order_by(ResearchImport.created_at.desc())).all()]
+
+
+@app.get("/api/research/{import_id}")
+def get_research(import_id: str, session: DB):
+    item = session.get(ResearchImport, import_id)
+    if not item:
+        raise HTTPException(404, "Research import not found")
+    return item.payload
 
 
 @app.post("/api/jobs", status_code=202)

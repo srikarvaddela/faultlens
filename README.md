@@ -73,7 +73,11 @@ npm run test:e2e
 
 Browser tests launch their own services on ports 8010 and 5174. They exercise real evaluations, evidence inspection, exports, persistence, selection validation, mobile layout, and methodology. API/evaluator tests cover fixture reproduction, fixed-code validation, mathematical scoring, tie handling, exclusion of ground truth, invalid input, and runner timeouts. GitHub Actions runs backend tests on Windows and Linux plus frontend build and Chromium workflows.
 
-## What is measured?
+## Inspect archived research
+
+From `backend`, run `python -m app.import_research /path/to/study.zip --name "Research archive"`, then open **Research** in the UI. The offline adapter reads recorded CSV outcomes, preserves unknown leakage labels, and keeps repeated runs separate. Your imported data stays in the ignored local database; archive scripts never execute and no model calls are made. See [research import methodology](docs/research-import.md).
+
+## Workbench metrics
 
 - **Ochiai and Tarantula:** established coverage-based ranking formulas.
 - **Top-1/Top-3:** known fault within the first one or three positions.

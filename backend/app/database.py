@@ -22,6 +22,14 @@ class Experiment(Base):
     payload: Mapped[dict] = mapped_column(JSON)
 
 
+class ResearchImport(Base):
+    __tablename__ = "research_imports"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    name: Mapped[str] = mapped_column(String(100))
+    created_at: Mapped[str] = mapped_column(String(40))
+    payload: Mapped[dict] = mapped_column(JSON)
+
+
 class Job(Base):
     __tablename__ = "jobs"
     id: Mapped[str] = mapped_column(String(36), primary_key=True)

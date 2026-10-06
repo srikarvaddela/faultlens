@@ -84,3 +84,14 @@ def test_jobs_enqueue_cancel_and_retry_as_new_run():
     assert retry.json()["attempts"] == 0
     assert len(client.get("/api/jobs").json()) == 2
     assert client.post("/api/jobs", json={"bug_ids": ["unknown"], "methods": ["ochiai"]}).status_code == 422
+
+
+def test_research_endpoints_preserve_archived_outcomes():
+    from app.database import ResearchImport
+    client = make_client()
+    for session in app.dependency_overrides[get_session]():
+        session.add(ResearchImport(id="synthetic", name="Synthetic study", created_at="2026-01-01", payload={"run_count": 1, "observation_count": 2, "runs": [{"rows": [{"fn_leak": None}]}]}))
+        session.commit()
+    assert client.get("/api/research").json()[0]["observation_count"] == 2
+    assert client.get("/api/research/synthetic").json()["runs"][0]["rows"][0]["fn_leak"] is None
+    assert client.get("/api/research/missing").status_code == 404
