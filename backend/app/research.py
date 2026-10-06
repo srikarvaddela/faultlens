@@ -7,6 +7,7 @@ from pathlib import Path, PurePosixPath
 import zipfile
 
 from .database import ResearchImport
+from .answer_audit import attach_audits
 
 
 def boolean(value):
@@ -57,6 +58,10 @@ def parse_run(name, data):
             "chain_step1": boolean(row.get("chain_step1")),
             "chain_step2": boolean(row.get("chain_step2")),
             "chain_step3": boolean(row.get("chain_step3")),
+            "ground_truth": {
+                "functions": [name for name in (row.get("gt_functions") or row.get("gt_function") or "").split("|") if name],
+                "line": int(row["gt_line"]) if row.get("gt_line") else None,
+            },
         })
         if len(rows) > 20_000:
             raise ValueError("Run exceeds 20,000 row limit")
@@ -75,12 +80,18 @@ def read_archive(path, name="Research archive"):
     runs = []
     names = set()
     seen_hashes = {}
+    raw_files = {}
     with zipfile.ZipFile(path) as archive:
         entries = archive.infolist()
         if len(entries) > 5000 or sum(entry.file_size for entry in entries) > 128 * 1024 * 1024:
             raise ValueError("Archive exceeds entry or uncompressed size limit")
         for entry in sorted(entries, key=lambda entry: entry.filename):
             filename = PurePosixPath(entry.filename.replace('\\', '/')).name
+            if filename.startswith("raw_answers_") and filename.endswith(".jsonl"):
+                if filename in raw_files or entry.file_size > 8 * 1024 * 1024:
+                    raise ValueError("Ambiguous or oversized raw-answer file")
+                raw_files[filename] = archive.read(entry)
+                continue
             if not filename.startswith("results") or not filename.endswith(".csv"):
                 continue
             if filename in names:
@@ -94,16 +105,19 @@ def read_archive(path, name="Research archive"):
             runs.append(run)
     if not runs:
         raise ValueError("No supported result CSVs found")
+    audit_summary = attach_audits(runs, raw_files)
     return {
         "id": archive_hash, "name": name[:100], "imported_at": datetime.now(timezone.utc).isoformat(),
         "mode": "archived_results", "runs": runs, "run_count": len(runs),
         "observation_count": sum(len(run["rows"]) for run in runs),
+        "importer_version": "2.0.0", "audit_summary": audit_summary,
         "notes": [
             "Imported recorded outcomes, not new inference or independently rescored answers.",
             "Localization means the archive's function-or-line hit, not coverage Top-1 or MRR.",
             "Missing function-leakage labels remain unknown; they are not clean cases.",
             "Repeated runs and overlapping result files remain separate; no pooled significance claim.",
-            "Raw prompts, model answers, tracebacks, documents, and upstream source are not imported.",
+            "Saved final answers are linked only by exact run filename and case identity; missing answers remain unavailable.",
+            "Audit flags are review heuristics, not corrected scores. Raw prompts, tracebacks, documents, and upstream source are excluded.",
         ],
     }
 
@@ -111,6 +125,9 @@ def read_archive(path, name="Research archive"):
 def save_import(session, payload):
     existing = session.get(ResearchImport, payload["id"])
     if existing:
+        if existing.payload.get("importer_version") != payload.get("importer_version"):
+            existing.payload = payload
+            session.commit()
         return existing.id
     session.add(ResearchImport(id=payload["id"], name=payload["name"], created_at=payload["imported_at"], payload=payload))
     session.commit()
