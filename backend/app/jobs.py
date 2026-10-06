@@ -22,7 +22,8 @@ def job_view(job):
         "status": job.status, "attempts": job.attempts, "max_attempts": MAX_ATTEMPTS,
         "progress": job.progress, "total": len(job.request["bug_ids"]),
         "cancel_requested": job.cancel_requested, "last_error": job.last_error,
-        "experiment_id": job.id if job.status == "completed" else None,
+        "experiment_id": job.id if job.status == "completed" and job.request.get('kind') != 'ollama' else None,
+        "unit": "plans" if job.request.get('kind') == 'ollama' else "cases",
     }
 
 
@@ -113,6 +114,10 @@ def process_one(factory):
     if not item:
         return False
     job_id, token, request = item
+    if request.get('kind') == 'ollama':
+        from .ollama_runs import run_owned
+        run_owned(factory, job_id, token)
+        return True
     results = []
     try:
         for index, bug_id in enumerate(request["bug_ids"]):

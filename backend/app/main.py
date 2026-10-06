@@ -5,6 +5,7 @@ import logging
 import subprocess
 from typing import Annotated, Literal
 from uuid import uuid4
+from copy import deepcopy
 
 from fastapi import Depends, FastAPI, HTTPException, Response
 from pydantic import BaseModel, Field, field_validator
@@ -12,10 +13,12 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from .catalog import BY_ID, CATALOG, public_bug
-from .database import Experiment, Job, ResearchImport, PromptPlan, get_session, initialize_database
+from .database import Experiment, Job, ResearchImport, PromptPlan, InferenceRun, get_session, initialize_database
 from .evaluation import METHODS, evaluate, summarize
 from .jobs import enqueue, job_view
-from .prompting import prepare
+from .prompting import prepare, render_step, digest, VERSION
+from . import ollama_client
+from .ollama_runs import enqueue_run
 
 
 @asynccontextmanager
@@ -52,6 +55,72 @@ class PlanRequest(BaseModel):
     bug_id: str
     strategy: Literal['single', 'chain_original', 'chain_evidence']
     evidence_mode: Literal['failure_details', 'exception_only']
+
+
+class LocalRunRequest(BaseModel):
+    plan_id: str
+    model: str = Field(min_length=1, max_length=100)
+    compare: bool = True
+
+
+@app.get('/api/ollama/status')
+def ollama_status():
+    try:
+        return ollama_client.inventory()
+    except ollama_client.OllamaError as exc:
+        return {'connected': False, 'models': [], 'error': str(exc)}
+
+
+@app.post('/api/ollama/runs', status_code=202)
+def create_local_run(request: LocalRunRequest, session: DB):
+    saved = session.get(PromptPlan, request.plan_id)
+    if not saved:
+        raise HTTPException(404, 'Prompt plan not found')
+    plan = deepcopy(saved.payload)
+    if plan['prompt_version'] != VERSION:
+        raise HTTPException(409, 'Prepare a plan with the current prompt version')
+    try:
+        inventory = ollama_client.inventory()
+    except ollama_client.OllamaError as exc:
+        raise HTTPException(503, str(exc))
+    identity = next((model for model in inventory['models'] if model['name'] == request.model), None)
+    if not identity:
+        raise HTTPException(422, 'Select an installed local model')
+    plans = [plan]
+    if request.compare:
+        plans = []
+        for strategy in ('single', 'chain_evidence'):
+            variant = deepcopy(plan)
+            variant['id'] = str(uuid4())
+            variant['strategy'] = strategy
+            variant['carry_evidence'] = True
+            variant['steps'] = ['Localize fault'] if strategy == 'single' else ['Understand failure', 'Identify suspicious locations', 'Localize fault']
+            variant['first_messages'] = render_step(variant, 0, [])
+            variant['first_messages_sha256'] = digest(variant['first_messages'])
+            variant['plan_sha256'] = digest({key: value for key, value in variant.items() if key not in ('id', 'created_at', 'plan_sha256')})
+            plans.append(variant)
+    return enqueue_run(session, plans, identity, inventory.get('server_version'))
+
+
+@app.get('/api/ollama/runs')
+def list_local_runs(session: DB):
+    rows = session.scalars(select(InferenceRun).order_by(InferenceRun.created_at.desc()).limit(100)).all()
+    return [{'id': run.id, 'created_at': run.created_at, 'model': run.payload['model_identity']['name'], 'bug_id': run.payload['plans'][0]['bug_id'], 'status': session.get(Job, run.id).status} for run in rows]
+
+
+@app.get('/api/ollama/runs/{run_id}')
+def get_local_run(run_id: str, session: DB):
+    run = session.get(InferenceRun, run_id)
+    if not run:
+        raise HTTPException(404, 'Local inference run not found')
+    job = session.get(Job, run_id)
+    return {**run.payload, 'status': job.status, 'cancel_requested': job.cancel_requested}
+
+
+@app.get('/api/ollama/runs/{run_id}/export')
+def export_local_run(run_id: str, session: DB):
+    payload = get_local_run(run_id, session)
+    return Response(json.dumps(payload, indent=2), media_type='application/json', headers={'Content-Disposition': f'attachment; filename="faultlens-local-{payload["id"]}.json"'})
 
 
 @app.post('/api/prompt-plans', status_code=201)
@@ -156,6 +225,9 @@ def retry_job(job_id: str, session: DB):
         raise HTTPException(404, "Job not found")
     if job.status not in ("failed", "cancelled"):
         raise HTTPException(409, "Only failed or cancelled jobs can be retried")
+    if job.request.get('kind') == 'ollama':
+        previous = session.get(InferenceRun, job_id).payload
+        return enqueue_run(session, previous['plans'], previous['model_identity'], previous['server_version'])
     # A retry is a new job with its own bounded retry budget and audit trail.
     return enqueue(session, dict(job.request))
 

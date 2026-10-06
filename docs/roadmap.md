@@ -19,12 +19,14 @@
 
 ## 3 — Live AI comparisons
 
-- [ ] Provider integration with credentials outside source control
+- [x] Local Ollama integration; remote providers remain optional future work
 - [x] Versioned single-prompt and multi-step plan templates (execution still pending)
 - [x] Strict ranking-output parser
-- [ ] Persisted live parse-failure accounting
-- [ ] Token usage, cost, latency, and budget caps
-- [ ] Leakage-controlled prompts and stored redacted inputs
+- [x] Persisted local inference calls and parse-failure accounting
+- [x] Native token usage, latency, and bounded local generation
+- [ ] Remote-provider cost accounting and budget caps
+- [x] Frozen input/response transcripts for local calls
+- [ ] Validated leakage-controlled real-world prompts
 
 ## 4 — Real-world benchmark
 

@@ -22,6 +22,13 @@ class Experiment(Base):
     payload: Mapped[dict] = mapped_column(JSON)
 
 
+class InferenceRun(Base):
+    __tablename__ = "inference_runs"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    created_at: Mapped[str] = mapped_column(String(40))
+    payload: Mapped[dict] = mapped_column(JSON)
+
+
 class PromptPlan(Base):
     __tablename__ = "prompt_plans"
     id: Mapped[str] = mapped_column(String(36), primary_key=True)

@@ -26,4 +26,5 @@ export type Job = {
   status: 'queued' | 'running' | 'completed' | 'failed' | 'cancelled'
   attempts: number; max_attempts: number; progress: number; total: number
   cancel_requested: boolean; last_error: string | null; experiment_id: string | null
+  unit?: string
 }

@@ -79,7 +79,7 @@ From `backend`, run `python -m app.import_research /path/to/study.zip --name "Re
 
 ## Prepare reproducible prompt inputs
 
-Open **Prompt lab** to prepare a single-prompt or three-step plan from a curated case. Plans preserve evidence, prompt versions, exact first-step messages, and hashes; no model calls are made. Later messages require actual prior responses. See [prompt-plan methodology](docs/prompt-plans.md).
+Open **Prompt lab** to prepare a single-prompt or three-step plan from a curated case. Preparing plans preserves evidence, prompt versions, exact first-step messages, and hashes without making model calls. You can then run a local Ollama comparison and inspect every saved call and response. Later messages require actual prior responses. See [prompt-plan methodology](docs/prompt-plans.md) and [local Ollama setup](docs/ollama.md).
 
 ## Workbench metrics
 
@@ -95,6 +95,6 @@ The dataset is six original fixtures with 30 tests. It is small by design and do
 
 See [architecture](docs/architecture.md), [evaluation methodology](docs/methodology.md), and [roadmap](docs/roadmap.md).
 
-This release is a single-user local workbench with a database-backed queue and a separate worker. Only complete experiments are published; cancellation is cooperative between cases. Each trusted fixture subprocess has a ten-second timeout. There is no authentication, arbitrary repository execution, or live LLM inference yet. The deprecated synchronous experiment endpoint remains for compatibility; the UI uses the queue. Subprocesses are **not a security sandbox**. Do not expose this unauthenticated API on a public network.
+This release is a single-user local workbench with a database-backed queue and a separate worker. Only complete experiments are published; cancellation is cooperative between cases. Each trusted fixture subprocess has a ten-second timeout. Live local inference is available through Ollama; there is no authentication or arbitrary repository execution yet. The deprecated synchronous experiment endpoint remains for compatibility; the UI uses the queue. Subprocesses are **not a security sandbox**. Do not expose this unauthenticated API on a public network.
 
 ![FaultLens workbench](docs/screenshots/workbench.png)

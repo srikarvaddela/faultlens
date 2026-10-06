@@ -8,6 +8,6 @@ Evidence can contain full failing-test outcomes or only captured exception messa
 
 Only the first step is materialized during preparation. A pure renderer constructs later messages from the frozen plan and actual prior responses. Live execution must save every rendered message before making its provider call, then retain the returned response, model/version/configuration, token usage, timing, and request identifiers. A prepared plan by itself does not prove what a model saw.
 
-A strict future-response parser requires one to three distinct, valid source line numbers and nonempty reasons in a JSON candidates array. It records parse errors instead of accepting invalid outputs; it does not score accuracy. Provider integration, persisted per-call transcripts, retries/budget limits, and live inference remain future work.
+A strict future-response parser requires one to three distinct, valid source line numbers and nonempty reasons in a JSON candidates array. It records parse errors instead of accepting invalid outputs; it does not score accuracy. Local Ollama execution now persists each materialized request and response, with bounded generation and explicit retries. Remote providers and billing budgets remain future work. See [Ollama integration](ollama.md).
 
 Plans are saved in the local database and can be reopened or exported as JSON. Old plans retain their original templates and messages when code changes.

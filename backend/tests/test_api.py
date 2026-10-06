@@ -110,3 +110,26 @@ def test_prompt_plans_persist_exact_first_step_and_export_without_inference():
     assert client.get('/api/experiments').json() == []
     assert client.post('/api/prompt-plans', json={'bug_id': 'unknown', 'strategy': 'single', 'evidence_mode': 'failure_details'}).status_code == 422
     assert client.get('/api/prompt-plans/missing').status_code == 404
+
+
+def test_ollama_api_freezes_shared_evidence_and_retries_as_new_snapshot(monkeypatch):
+    from app import ollama_client
+    monkeypatch.setattr(ollama_client, 'inventory', lambda: {'connected':True,'models':[{'name':'test-local:1b','digest':'synthetic'}], 'server_version':'test'})
+    client = make_client()
+    plan = client.post('/api/prompt-plans', json={'bug_id':'FL-001','strategy':'single','evidence_mode':'failure_details'}).json()
+    job = client.post('/api/ollama/runs', json={'plan_id':plan['id'],'model':'test-local:1b','compare':True})
+    assert job.status_code == 202
+    run_id = job.json()['id']
+    run = client.get(f'/api/ollama/runs/{run_id}').json()
+    assert run['status'] == 'queued'
+    assert len(run['plans']) == 2
+    assert len({plan['evidence_sha256'] for plan in run['plans']}) == 1
+    assert run['calls'] == []
+    assert client.get(f'/api/ollama/runs/{run_id}/export').json() == run
+    assert client.get('/api/ollama/runs').json()[0]['id'] == run_id
+    client.post(f'/api/jobs/{run_id}/cancel')
+    retried = client.post(f'/api/jobs/{run_id}/retry')
+    assert retried.status_code == 202
+    assert retried.json()['id'] != run_id
+    assert client.get(f'/api/ollama/runs/{retried.json()["id"]}').json()['calls'] == []
+    assert client.post('/api/ollama/runs', json={'plan_id':plan['id'],'model':'unknown'}).status_code == 422
