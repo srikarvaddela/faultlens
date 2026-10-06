@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowDownToLine, ArrowRight, Beaker, BookOpen, Check, CheckCircle2, ChevronDown, ChevronRight, CircleHelp, Clock3, Code2, Crosshair, Database, ExternalLink, FileCode2, FlaskConical, GitBranch, Layers3, LoaderCircle, Play, Search, ShieldCheck, SlidersHorizontal, Terminal, X, XCircle } from 'lucide-react'
 import { api } from './api'
-import type { Bug, Catalog, Experiment, ExperimentEntry, Method, Result } from './types'
+import type { Bug, Catalog, Experiment, ExperimentEntry, Job, Method, Result } from './types'
 
 type Page = 'workbench' | 'experiments' | 'methodology'
 const methodNames: Record<Method, string> = { ochiai: 'Ochiai', tarantula: 'Tarantula' }
@@ -17,6 +17,7 @@ function CodeText({ text }: { text: string }) {
 export default function App() {
   const [catalog, setCatalog] = useState<Catalog | null>(null)
   const [entries, setEntries] = useState<ExperimentEntry[]>([])
+  const [jobs, setJobs] = useState<Job[]>([])
   const [experiment, setExperiment] = useState<Experiment | null>(null)
   const [selectedId, setSelectedId] = useState('FL-001')
   const [method, setMethod] = useState<Method>('ochiai')
@@ -34,6 +35,7 @@ export default function App() {
   const [runMethods, setRunMethods] = useState<Method[]>(['ochiai', 'tarantula'])
   const modalRef = useRef<HTMLDialogElement>(null)
   const loadSequence = useRef(0)
+  const pendingJob = useRef<string | null>(null)
 
   useEffect(() => {
     function shortcut(event: KeyboardEvent) {
@@ -49,7 +51,9 @@ export default function App() {
   async function load() {
     setError('')
     try {
-      const [nextCatalog, nextEntries] = await Promise.all([api<Catalog>('/catalog'), api<ExperimentEntry[]>('/experiments')])
+      const [nextCatalog, nextEntries, nextJobs] = await Promise.all([api<Catalog>('/catalog'), api<ExperimentEntry[]>('/experiments'), api<Job[]>('/jobs')])
+      setJobs(nextJobs)
+      pendingJob.current = nextJobs.find(job => job.status === 'queued' || job.status === 'running')?.id ?? null
       setCatalog(nextCatalog); setEntries(nextEntries); setRunIds(nextCatalog.bugs.map(bug => bug.id)); setReady(true)
       if (nextEntries[0]) {
         const latest = await api<Experiment>(`/experiments/${nextEntries[0].id}`)
@@ -58,6 +62,29 @@ export default function App() {
     } catch (err) { setError(err instanceof Error ? err.message : 'Unable to connect to the API.') }
   }
   useEffect(() => { void load() }, [])
+  useEffect(() => {
+    if (!ready) return
+    let stopped = false
+    let polling = false
+    async function poll() {
+      if (polling) return
+      polling = true
+      try {
+        const [nextJobs, nextEntries] = await Promise.all([api<Job[]>('/jobs'), api<ExperimentEntry[]>('/experiments')])
+        if (stopped) return
+        setJobs(nextJobs); setEntries(nextEntries)
+        const current = nextJobs.find(job => job.id === pendingJob.current)
+        if (current?.status === 'completed' && current.experiment_id) {
+          pendingJob.current = null
+          await openExperiment(current.experiment_id)
+        } else if (current?.status === 'failed' || current?.status === 'cancelled') pendingJob.current = null
+      } catch (err) {
+        if (!stopped) setError(err instanceof Error ? err.message : 'Could not refresh job status.')
+      } finally { polling = false }
+    }
+    const timer = window.setInterval(() => void poll(), 1500)
+    return () => { stopped = true; window.clearInterval(timer) }
+  }, [ready])
   useEffect(() => {
     if (dialog) modalRef.current?.showModal()
     else modalRef.current?.close()
@@ -82,16 +109,26 @@ export default function App() {
   async function run() {
     setRunning(true); setError('')
     try {
-      const item = await api<Experiment>('/experiments', { method: 'POST', body: JSON.stringify({ name: runName.trim(), bug_ids: runIds, methods: runMethods }) })
-      setExperiment(item); selectBug(item.bug_ids[0]); setMethod(item.methods[0]); setPage('workbench'); setDialog(false)
-      setEntries(previous => [{ id: item.id, name: item.name, created_at: item.created_at, summary: item.summary, bug_ids: item.bug_ids, methods: item.methods }, ...previous])
+      const item = await api<Job>('/jobs', { method: 'POST', body: JSON.stringify({ name: runName.trim(), bug_ids: runIds, methods: runMethods }) })
+      pendingJob.current = item.id
+      setJobs(previous => [item, ...previous]); setPage('workbench'); setDialog(false)
     } catch (err) { setError(err instanceof Error ? err.message : 'Evaluation failed.') }
     finally { setRunning(false) }
   }
 
+  async function jobAction(job: Job, action: 'cancel' | 'retry') {
+    try {
+      const item = await api<Job>(`/jobs/${job.id}/${action}`, { method: 'POST' })
+      if (action === 'retry') {
+        pendingJob.current = item.id
+        setJobs(previous => [item, ...previous])
+      } else setJobs(previous => previous.map(existing => existing.id === item.id ? item : existing))
+    } catch (err) { setError(err instanceof Error ? err.message : 'Job action failed.') }
+  }
+
   return <div className="app-shell">
     <aside className="sidebar">
-      <a className="brand" href="#" onClick={event => { event.preventDefault(); setPage('workbench') }}><span className="brand-icon"><Crosshair size={22} /></span>FaultLens<span className="version">v0.1</span></a>
+      <a className="brand" href="#" onClick={event => { event.preventDefault(); setPage('workbench') }}><span className="brand-icon"><Crosshair size={22} /></span>FaultLens<span className="version">v0.2</span></a>
       <div className="workspace-label">RESEARCH WORKSPACE</div>
       <nav aria-label="Main navigation">
         <button className={page === 'workbench' ? 'nav-item active' : 'nav-item'} onClick={() => setPage('workbench')}><Code2 size={18} />Workbench</button>
@@ -112,6 +149,7 @@ export default function App() {
 
         {error && <div className="error-banner" role="alert"><XCircle size={17} /><span>{error}</span>{!ready && <button onClick={() => void load()}>Retry connection</button>}<button aria-label="Dismiss error" onClick={() => setError('')}><X size={16} /></button></div>}
         {!ready && !error && <div className="loading-state"><LoaderCircle className="spin" size={20} />Connecting to the evaluation service…</div>}
+        {ready && jobs.length > 0 && page !== 'methodology' && <section className="panel jobs-panel" aria-label="Evaluation jobs"><div className="panel-title"><h2>Evaluation jobs</h2><span className="muted">Runs continue when you leave this page</span></div>{jobs.slice(0, page === 'experiments' ? 20 : 3).map(job => <div className="job-row" data-job-id={job.id} key={job.id}><div><strong>{job.name}</strong><span>{job.status === 'queued' ? 'Waiting for worker' : job.status === 'running' ? `${job.progress} / ${job.total} cases evaluated` : job.status === 'completed' ? `${job.total} cases evaluated` : job.last_error ?? 'Cancelled before publication'} · attempt {job.attempts} / {job.max_attempts}</span></div><span className={`job-status ${job.status}`}>{job.cancel_requested && job.status === 'running' ? 'cancelling' : job.status}</span>{(job.status === 'queued' || job.status === 'running') && <button className="text-button" disabled={job.cancel_requested} onClick={() => void jobAction(job, 'cancel')}>Cancel</button>}{(job.status === 'failed' || job.status === 'cancelled') && <button className="text-button" onClick={() => void jobAction(job, 'retry')}>Retry</button>}{job.experiment_id && <button className="text-button" disabled={loadingExperiment} onClick={() => void openExperiment(job.experiment_id!)}>View results<ArrowRight size={13} /></button>}</div>)}</section>}
 
         {ready && page === 'workbench' && <>
           <div className="metrics">
@@ -138,7 +176,7 @@ export default function App() {
 
         {ready && page === 'experiments' && <section className="panel history-panel"><div className="panel-title"><h2>Saved runs</h2><span className="count-badge">{entries.length}</span></div>{entries.length ? <div className="table-wrap"><table><thead><tr><th>Experiment</th><th>Cases</th><th>Methods</th><th>Best Top-1</th><th>Created</th><th /></tr></thead><tbody>{entries.map(entry => <tr key={entry.id}><td><strong>{entry.name}</strong><span className="table-id mono">{entry.id.slice(0, 8)}</span></td><td>{entry.bug_ids.length}</td><td>{entry.methods.map(item => methodNames[item]).join(' + ')}</td><td>{pct(Math.max(...Object.values(entry.summary).map(item => item.top1)))}</td><td>{date(entry.created_at)}</td><td><button className="text-button" disabled={loadingExperiment} onClick={() => void openExperiment(entry.id)}>Open<ArrowRight size={14} /></button></td></tr>)}</tbody></table></div> : <div className="history-empty"><FlaskConical size={34} /><h3>Your experiment notebook starts here.</h3><p>Run a baseline comparison to save test evidence and rankings.</p><button className="button primary" onClick={() => setDialog(true)}>New experiment</button></div>}</section>}
 
-        {ready && page === 'methodology' && <div className="methodology-grid"><section className="panel prose-panel"><span className="small-pill">EVALUATOR v1.0.0</span><h2>A reproducible starting point</h2><p>FaultLens runs 30 tests across six original Python fixtures. It collects line coverage per test, then ranks lines using only coverage and pass/fail outcomes. Known fault locations enter the scoring stage after ranking.</p><h3>Two transparent baselines</h3><div className="formula-card"><strong>Ochiai</strong><code>failed(line) / √(total_failed × covered(line))</code><p>A line covered mostly by failing tests receives a higher score.</p></div><div className="formula-card"><strong>Tarantula</strong><code>fail_rate(line) / (fail_rate(line) + pass_rate(line))</code><p>Coverage rates are normalized by the number of passing and failing tests.</p></div><h3>What the metrics mean</h3><p><strong>Top-1 / Top-3:</strong> fraction of bugs with the known fault ranked within the first one or three positions. <strong>MRR:</strong> average of 1 / fault rank. Higher is better. An uncovered fault contributes zero.</p><p><strong>Ties:</strong> all equally scored lines receive the worst position in their group. This prevents line-number ordering from inflating accuracy. A displayed score is rounded; scoring uses its full precision.</p><p><strong>Timing:</strong> wall-clock time for process startup, test execution, and ranking. It depends on your machine and is not an LLM latency measurement.</p></section><div><section className="panel prose-panel"><ShieldCheck size={23} /><h2>Boundaries matter</h2><ul><li>These are educational fixtures, not BugsInPy or production defects.</li><li>No live LLM runs or AI accuracy claims in this release.</li><li>Only packaged code executes. Child processes are not a security sandbox.</li><li>Ground-truth labels and fixes are never used by the ranking algorithms.</li><li>Saved runs include dataset and evaluator versions, source and evidence hashes, test outcomes, and exact scores.</li><li>The local demo has no authentication and must not be exposed as a shared service.</li></ul></section><section className="next-card"><span className="eyebrow">UP NEXT</span><h3>From baselines to AI evaluation</h3><p>Durable jobs, versioned prompts, model usage accounting, and leakage-controlled comparisons on a real-world benchmark.</p><a className="text-button" href="https://github.com/srikarvaddela/faultlens" target="_blank" rel="noreferrer">Follow the roadmap<ArrowRight size={14} /></a></section></div></div>}
+        {ready && page === 'methodology' && <div className="methodology-grid"><section className="panel prose-panel"><span className="small-pill">EVALUATOR v1.1.0</span><h2>A reproducible starting point</h2><p>FaultLens runs 30 tests across six original Python fixtures. It collects line coverage per test, then ranks lines using only coverage and pass/fail outcomes. Known fault locations enter the scoring stage after ranking.</p><h3>Two transparent baselines</h3><div className="formula-card"><strong>Ochiai</strong><code>failed(line) / √(total_failed × covered(line))</code><p>A line covered mostly by failing tests receives a higher score.</p></div><div className="formula-card"><strong>Tarantula</strong><code>fail_rate(line) / (fail_rate(line) + pass_rate(line))</code><p>Coverage rates are normalized by the number of passing and failing tests.</p></div><h3>What the metrics mean</h3><p><strong>Top-1 / Top-3:</strong> fraction of bugs with the known fault ranked within the first one or three positions. <strong>MRR:</strong> average of 1 / fault rank. Higher is better. An uncovered fault contributes zero.</p><p><strong>Ties:</strong> all equally scored lines receive the worst position in their group. This prevents line-number ordering from inflating accuracy. A displayed score is rounded; scoring uses its full precision.</p><p><strong>Timing:</strong> wall-clock time for process startup, test execution, and ranking. It depends on your machine and is not an LLM latency measurement.</p></section><div><section className="panel prose-panel"><ShieldCheck size={23} /><h2>Boundaries matter</h2><ul><li>These are educational fixtures, not BugsInPy or production defects.</li><li>No live LLM runs or AI accuracy claims in this release.</li><li>Only packaged code executes. Child processes are not a security sandbox.</li><li>Ground-truth labels and fixes are never used by the ranking algorithms.</li><li>Jobs survive restarts with bounded retries. Saved runs include dataset and evaluator versions, source and evidence hashes, test outcomes, and exact scores.</li><li>The local demo has no authentication and must not be exposed as a shared service.</li></ul></section><section className="next-card"><span className="eyebrow">UP NEXT</span><h3>From baselines to AI evaluation</h3><p>Versioned prompts, model usage accounting, and leakage-controlled comparisons on a real-world benchmark.</p><a className="text-button" href="https://github.com/srikarvaddela/faultlens" target="_blank" rel="noreferrer">Follow the roadmap<ArrowRight size={14} /></a></section></div></div>}
         <footer>FaultLens <span>Built to make debugging measurable.</span><span className="footer-version">Curated dataset v1.0.0</span></footer>
       </main>
     </div>

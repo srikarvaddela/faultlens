@@ -52,14 +52,27 @@ def rank_lines(tests, method):
 
 
 def evaluate(bug, method):
+    return evaluate_methods(bug, [method])[0]
+
+
+def evaluate_methods(bug, methods):
+    """Collect evidence once, then rank exactly the same outcomes per method."""
     started = time.perf_counter()
     tests = execute_tests(bug)
+    evidence_ms = (time.perf_counter() - started) * 1000
+    return [score_evidence(bug, method, tests, evidence_ms) for method in methods]
+
+
+def score_evidence(bug, method, tests, evidence_ms):
+    started = time.perf_counter()
     candidates = rank_lines(tests, method)
     truth = next((candidate for candidate in candidates if candidate["line"] == bug["fault_line"]), None)
     rank = truth["rank"] if truth else None
     return {
         "bug_id": bug["id"], "title": bug["title"], "method": method,
-        "duration_ms": round((time.perf_counter() - started) * 1000, 2),
+        "duration_ms": round(evidence_ms + (time.perf_counter() - started) * 1000, 2),
+        "evidence_duration_ms": round(evidence_ms, 3),
+        "ranking_duration_ms": round((time.perf_counter() - started) * 1000, 3),
         "tests": tests, "candidates": candidates, "fault_rank": rank,
         "top1": rank is not None and rank <= 1,
         "top3": rank is not None and rank <= 3,

@@ -21,3 +21,9 @@ export type Experiment = {
 }
 export type ExperimentEntry = Omit<Experiment, 'results' | 'dataset' | 'tie_policy'>
 export type Catalog = { bugs: Bug[]; methods: { id: Method; name: string; description: string }[] }
+export type Job = {
+  id: string; name: string; created_at: string
+  status: 'queued' | 'running' | 'completed' | 'failed' | 'cancelled'
+  attempts: number; max_attempts: number; progress: number; total: number
+  cancel_requested: boolean; last_error: string | null; experiment_id: string | null
+}

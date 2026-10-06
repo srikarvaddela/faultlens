@@ -25,6 +25,15 @@ services:
       - '127.0.0.1:8080:80'
     depends_on:
       - backend
+  worker:
+    build: ./backend
+    command: ["python", "-m", "app.worker"]
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+psycopg://faultlens:local-dev-only@db:5432/faultlens
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   database:

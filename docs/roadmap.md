@@ -11,9 +11,9 @@
 
 ## 2 — Reliable experiment infrastructure
 
-- [ ] Durable worker with job states, bounded retries, cancellation, and recovery
+- [x] Durable worker with job states, bounded retries, cancellation, and recovery
 - [ ] Database migrations and validated PostgreSQL deployment
-- [ ] Shared evidence collection across methods for fair timing comparisons
+- [x] Shared evidence collection across methods with separate ranking timings
 - [ ] Authentication and per-user experiment ownership
 - [ ] Resource limits, observability, and deployment smoke checks
 

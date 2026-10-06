@@ -13,6 +13,7 @@ if (!existsSync(python) || !existsSync(vite)) {
 }
 const children = [
   spawn(python, ['-m', 'uvicorn', 'app.main:app', '--host', '127.0.0.1', '--port', '8000'], { cwd: path.join(root, 'backend'), stdio: 'inherit' }),
+  spawn(python, ['-m', 'app.worker'], { cwd: path.join(root, 'backend'), stdio: 'inherit' }),
   spawn(process.execPath, [vite, '--host', '127.0.0.1'], { cwd: path.join(root, 'frontend'), stdio: 'inherit' }),
 ]
 let stopping = false
