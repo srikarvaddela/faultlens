@@ -12,9 +12,10 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from .catalog import BY_ID, CATALOG, public_bug
-from .database import Experiment, Job, ResearchImport, get_session, initialize_database
+from .database import Experiment, Job, ResearchImport, PromptPlan, get_session, initialize_database
 from .evaluation import METHODS, evaluate, summarize
 from .jobs import enqueue, job_view
+from .prompting import prepare
 
 
 @asynccontextmanager
@@ -45,6 +46,46 @@ class RunRequest(BaseModel):
         if len(set(values)) != len(values):
             raise ValueError("Selections must be unique")
         return values
+
+
+class PlanRequest(BaseModel):
+    bug_id: str
+    strategy: Literal['single', 'chain_original', 'chain_evidence']
+    evidence_mode: Literal['failure_details', 'exception_only']
+
+
+@app.post('/api/prompt-plans', status_code=201)
+def create_plan(request: PlanRequest, session: DB):
+    if request.bug_id not in BY_ID:
+        raise HTTPException(422, 'Unknown curated bug')
+    try:
+        payload = prepare(request.bug_id, request.strategy, request.evidence_mode)
+    except subprocess.TimeoutExpired:
+        raise HTTPException(504, 'Evidence collection timed out')
+    except (subprocess.CalledProcessError, json.JSONDecodeError):
+        raise HTTPException(500, 'Evidence collection failed; no plan was saved')
+    session.add(PromptPlan(id=payload['id'], created_at=payload['created_at'], payload=payload))
+    session.commit()
+    return payload
+
+
+@app.get('/api/prompt-plans')
+def list_plans(session: DB):
+    return [{'id': plan.id, 'created_at': plan.created_at, 'bug_id': plan.payload['bug_id'], 'strategy': plan.payload['strategy'], 'evidence_mode': plan.payload['evidence_mode'], 'prompt_version': plan.payload['prompt_version']} for plan in session.scalars(select(PromptPlan).order_by(PromptPlan.created_at.desc()).limit(100)).all()]
+
+
+@app.get('/api/prompt-plans/{plan_id}')
+def get_plan(plan_id: str, session: DB):
+    plan = session.get(PromptPlan, plan_id)
+    if not plan:
+        raise HTTPException(404, 'Prompt plan not found')
+    return plan.payload
+
+
+@app.get('/api/prompt-plans/{plan_id}/export')
+def export_plan(plan_id: str, session: DB):
+    payload = get_plan(plan_id, session)
+    return Response(json.dumps(payload, indent=2), media_type='application/json', headers={'Content-Disposition': f'attachment; filename="faultlens-plan-{payload["id"]}.json"'})
 
 
 @app.get("/api/health")

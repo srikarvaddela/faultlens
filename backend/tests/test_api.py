@@ -95,3 +95,18 @@ def test_research_endpoints_preserve_archived_outcomes():
     assert client.get("/api/research").json()[0]["observation_count"] == 2
     assert client.get("/api/research/synthetic").json()["runs"][0]["rows"][0]["fn_leak"] is None
     assert client.get("/api/research/missing").status_code == 404
+
+
+def test_prompt_plans_persist_exact_first_step_and_export_without_inference():
+    client = make_client()
+    response = client.post('/api/prompt-plans', json={'bug_id': 'FL-002', 'strategy': 'chain_evidence', 'evidence_mode': 'failure_details'})
+    assert response.status_code == 201
+    plan = response.json()
+    assert len(plan['steps']) == 3
+    assert plan['status'] == 'prepared_no_inference'
+    assert client.get(f'/api/prompt-plans/{plan["id"]}').json() == plan
+    assert client.get('/api/prompt-plans').json()[0]['id'] == plan['id']
+    assert client.get(f'/api/prompt-plans/{plan["id"]}/export').json() == plan
+    assert client.get('/api/experiments').json() == []
+    assert client.post('/api/prompt-plans', json={'bug_id': 'unknown', 'strategy': 'single', 'evidence_mode': 'failure_details'}).status_code == 422
+    assert client.get('/api/prompt-plans/missing').status_code == 404

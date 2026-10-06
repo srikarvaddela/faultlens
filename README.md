@@ -77,6 +77,10 @@ Browser tests launch their own services on ports 8010 and 5174. They exercise re
 
 From `backend`, run `python -m app.import_research /path/to/study.zip --name "Research archive"`, then open **Research** in the UI. The offline adapter reads recorded CSV outcomes, preserves unknown leakage labels, and keeps repeated runs separate. Where saved final answers exist, use the answer audit to inspect responses beside ground truth and review possible scoring artifacts without changing recorded results. A separate capture-derived view shows function-name matches with inspectable traces and provenance; it does not reproduce the original historical leakage split. Your imported data stays in the ignored local database; archive scripts never execute and no model calls are made. See [research import methodology](docs/research-import.md).
 
+## Prepare reproducible prompt inputs
+
+Open **Prompt lab** to prepare a single-prompt or three-step plan from a curated case. Plans preserve evidence, prompt versions, exact first-step messages, and hashes; no model calls are made. Later messages require actual prior responses. See [prompt-plan methodology](docs/prompt-plans.md).
+
 ## Workbench metrics
 
 - **Ochiai and Tarantula:** established coverage-based ranking formulas.

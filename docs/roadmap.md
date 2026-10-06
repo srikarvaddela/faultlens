@@ -20,8 +20,9 @@
 ## 3 — Live AI comparisons
 
 - [ ] Provider integration with credentials outside source control
-- [ ] Versioned single-prompt and multi-step methods
-- [ ] Structured ranking output and explicit parse-failure accounting
+- [x] Versioned single-prompt and multi-step plan templates (execution still pending)
+- [x] Strict ranking-output parser
+- [ ] Persisted live parse-failure accounting
 - [ ] Token usage, cost, latency, and budget caps
 - [ ] Leakage-controlled prompts and stored redacted inputs
 
