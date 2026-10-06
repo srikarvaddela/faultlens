@@ -81,6 +81,16 @@ From `backend`, run `python -m app.import_research /path/to/study.zip --name "Re
 
 Open **Prompt lab** to prepare a single-prompt or three-step plan from a curated case. Preparing plans preserves evidence, prompt versions, exact first-step messages, and hashes without making model calls. You can then run a local Ollama comparison and inspect every saved call and response. Later messages require actual prior responses. See [prompt-plan methodology](docs/prompt-plans.md) and [local Ollama setup](docs/ollama.md).
 
+## Local model benchmark
+
+The checkpointed runner compares single prompts with evidence-carrying three-step chains on all six curated bugs. It retains failed trials, exact call transcripts, native usage, truncation, and load timing. See the [measured llama3.2:1b report](docs/benchmarks/llama3.2-1b-curated.md) and its JSON export. With the native API, worker, and Ollama running, reproduce from the repository root:
+
+```shell
+python scripts/benchmark_ollama.py --model llama3.2:1b --repeats 3 --output benchmark-local.json
+```
+
+An existing output resumes known runs; choose a new path for a fresh batch. Fixed-seed repeats check repeatability and do not enlarge the six-bug sample.
+
 ## Workbench metrics
 
 - **Ochiai and Tarantula:** established coverage-based ranking formulas.

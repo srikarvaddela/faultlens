@@ -20,12 +20,13 @@
 ## 3 — Live AI comparisons
 
 - [x] Local Ollama integration; remote providers remain optional future work
-- [x] Versioned single-prompt and multi-step plan templates (execution still pending)
+- [x] Versioned single-prompt and multi-step plan templates with live execution
 - [x] Strict ranking-output parser
 - [x] Persisted local inference calls and parse-failure accounting
 - [x] Native token usage, latency, and bounded local generation
 - [ ] Remote-provider cost accounting and budget caps
 - [x] Frozen input/response transcripts for local calls
+- [x] Checkpointed curated benchmark runner and measured local model report
 - [ ] Validated leakage-controlled real-world prompts
 
 ## 4 — Real-world benchmark
