@@ -94,7 +94,3 @@ See [architecture](docs/architecture.md), [evaluation methodology](docs/methodol
 This release is a single-user local workbench with a database-backed queue and a separate worker. Only complete experiments are published; cancellation is cooperative between cases. Each trusted fixture subprocess has a ten-second timeout. There is no authentication, arbitrary repository execution, or live LLM inference yet. The deprecated synchronous experiment endpoint remains for compatibility; the UI uses the queue. Subprocesses are **not a security sandbox**. Do not expose this unauthenticated API on a public network.
 
 ![FaultLens workbench](docs/screenshots/workbench.png)
-
-## Author
-
-Built by Srikar Vaddela with Codex assistance. This project is independent of prior university research. The implementation, limitations, and milestone commits are documented so the work can be reproduced and discussed.
