@@ -75,7 +75,7 @@ Browser tests launch their own services on ports 8010 and 5174. They exercise re
 
 ## Inspect archived research
 
-From `backend`, run `python -m app.import_research /path/to/study.zip --name "Research archive"`, then open **Research** in the UI. The offline adapter reads recorded CSV outcomes, preserves unknown leakage labels, and keeps repeated runs separate. Where saved final answers exist, use the answer audit to inspect responses beside ground truth and review possible scoring artifacts without changing recorded results. Your imported data stays in the ignored local database; archive scripts never execute and no model calls are made. See [research import methodology](docs/research-import.md).
+From `backend`, run `python -m app.import_research /path/to/study.zip --name "Research archive"`, then open **Research** in the UI. The offline adapter reads recorded CSV outcomes, preserves unknown leakage labels, and keeps repeated runs separate. Where saved final answers exist, use the answer audit to inspect responses beside ground truth and review possible scoring artifacts without changing recorded results. A separate capture-derived view shows function-name matches with inspectable traces and provenance; it does not reproduce the original historical leakage split. Your imported data stays in the ignored local database; archive scripts never execute and no model calls are made. See [research import methodology](docs/research-import.md).
 
 ## Workbench metrics
 

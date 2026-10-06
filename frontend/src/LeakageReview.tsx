@@ -1,0 +1,10 @@
+import { useEffect, useRef } from 'react'
+
+export type DerivedLeakage = { version: string; fn_leak: boolean | null; reason: string; matches: { function: string; excerpt: string }[]; evidence_id: string | null; historical_input_verified: false }
+export type Capture = { filename: string; capture_sha256: string; evidence_sha256: string | null; error_message: string; stack_trace: string; reproduced: boolean }
+
+export default function LeakageReview({ label, derived, capture, onClose }: { label: string; derived: DerivedLeakage; capture?: Capture; onClose: () => void }) {
+  const panel = useRef<HTMLElement>(null)
+  useEffect(() => { panel.current?.focus() }, [derived])
+  return <section ref={panel} tabIndex={-1} className="panel leakage-review" aria-label="Capture leakage review"><div className="panel-title"><div><span className="small-pill">CAPTURE-DERIVED · INPUT IDENTITY UNVERIFIED</span><h2>{label}</h2></div><button className="text-button" onClick={onClose}>Close evidence</button></div><div className="audit-truth"><strong>{derived.fn_leak === null ? 'Unknown' : derived.fn_leak ? 'Function name appears in archived capture' : 'No function-name match in archived capture'}</strong><span>Reason: {derived.reason.replaceAll('_', ' ')}</span><p>The original prompt inputs were not saved with hashes. This capture may differ from what the historical run received. A no-match label does not establish leakage-free evidence.</p></div>{derived.matches.length > 0 && <div className="leakage-matches">{derived.matches.map(match => <div key={match.function}><strong>{match.function}</strong><pre>{match.excerpt}</pre></div>)}</div>}{capture && <div className="leakage-body"><h3>Archived error message</h3><pre aria-label="Archived error message">{capture.error_message}</pre><h3>Archived stack trace</h3><pre aria-label="Archived stack trace">{capture.stack_trace}</pre><p>Capture reproduced: {capture.reproduced ? 'Yes (archived flag)' : 'No (archived flag)'}</p><p>Source: {capture.filename}</p><p className="mono">Capture SHA-256: {capture.capture_sha256}</p><p className="mono">Evidence SHA-256: {capture.evidence_sha256 ?? 'Unavailable'}</p></div>}</section>
+}

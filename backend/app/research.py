@@ -8,6 +8,7 @@ import zipfile
 
 from .database import ResearchImport
 from .answer_audit import attach_audits
+from .leakage import attach_leakage
 
 
 def boolean(value):
@@ -55,6 +56,7 @@ def parse_run(name, data):
             "operator": (row.get("operator") or "")[:30],
             "single": boolean(row.get(single_key)), "chain": boolean(row.get(chain_key)),
             "fn_leak": boolean(row.get("fn_leak")),
+            "real_evidence": boolean(row.get("real_evidence")),
             "chain_step1": boolean(row.get("chain_step1")),
             "chain_step2": boolean(row.get("chain_step2")),
             "chain_step3": boolean(row.get("chain_step3")),
@@ -81,12 +83,18 @@ def read_archive(path, name="Research archive"):
     names = set()
     seen_hashes = {}
     raw_files = {}
+    capture_files = {}
     with zipfile.ZipFile(path) as archive:
         entries = archive.infolist()
         if len(entries) > 5000 or sum(entry.file_size for entry in entries) > 128 * 1024 * 1024:
             raise ValueError("Archive exceeds entry or uncompressed size limit")
         for entry in sorted(entries, key=lambda entry: entry.filename):
             filename = PurePosixPath(entry.filename.replace('\\', '/')).name
+            if 'real_errors' in PurePosixPath(entry.filename.replace('\\', '/')).parts and filename.endswith('.json'):
+                if filename in capture_files or entry.file_size > 256 * 1024:
+                    raise ValueError("Ambiguous or oversized capture file")
+                capture_files[filename] = archive.read(entry)
+                continue
             if filename.startswith("raw_answers_") and filename.endswith(".jsonl"):
                 if filename in raw_files or entry.file_size > 8 * 1024 * 1024:
                     raise ValueError("Ambiguous or oversized raw-answer file")
@@ -106,18 +114,21 @@ def read_archive(path, name="Research archive"):
     if not runs:
         raise ValueError("No supported result CSVs found")
     audit_summary = attach_audits(runs, raw_files)
+    capture_evidence, leakage_summary = attach_leakage(runs, capture_files)
     return {
         "id": archive_hash, "name": name[:100], "imported_at": datetime.now(timezone.utc).isoformat(),
         "mode": "archived_results", "runs": runs, "run_count": len(runs),
         "observation_count": sum(len(run["rows"]) for run in runs),
-        "importer_version": "2.0.0", "audit_summary": audit_summary,
+        "importer_version": "3.1.0", "audit_summary": audit_summary,
+        "capture_evidence": capture_evidence, "leakage_summary": leakage_summary,
         "notes": [
             "Imported recorded outcomes, not new inference or independently rescored answers.",
             "Localization means the archive's function-or-line hit, not coverage Top-1 or MRR.",
             "Missing function-leakage labels remain unknown; they are not clean cases.",
             "Repeated runs and overlapping result files remain separate; no pooled significance claim.",
             "Saved final answers are linked only by exact run filename and case identity; missing answers remain unavailable.",
-            "Audit flags are review heuristics, not corrected scores. Raw prompts, tracebacks, documents, and upstream source are excluded.",
+            "Audit flags are review heuristics, not corrected scores. Capture-derived labels are separate from recorded labels.",
+            "Archived captures are not verified as the exact historical prompt inputs; derived strata do not reproduce the original leakage-controlled study.",
         ],
     }
 
