@@ -1,0 +1,701 @@
+{
+  "version": "faultlens-real-validation-1.0.0",
+  "created_at": "2026-10-06T21:41:26.938473+00:00",
+  "benchmark_revision": "11c5f1eea954a42132cfd06bf257766a7963e0fd",
+  "selection": "Six preselected capture-audit cases: black 1/3, httpie 3, fastapi 14/16, cookiecutter 1. Includes earlier unknown and environment-failure controls.",
+  "capture_commit_counts": {
+    "commit_matches": 199
+  },
+  "cases": [
+    {
+      "project": "black",
+      "bug_id": "1",
+      "status": "buggy_fails_fixed_passes",
+      "ready_for_prompt_review": true,
+      "upstream": "https://github.com/psf/black",
+      "buggy_commit": "26c9465a22c732ab1e17b0dec578fa3432e9b558",
+      "fixed_commit": "c0a7582e3d4cc8bec3b7f5a6c52b36880dcb57d7",
+      "metadata_sha256": "c396f825ab6970f665e2934765eaac9030ac4d2f5302b79aca49a7c9b53af57d",
+      "patch_sha256": "95bf24182a768ef792c2a0af142f8193a1197206cd0f6752127c200466f3823d",
+      "sources": [
+        {
+          "path": "black.py",
+          "sha256": "21e170526e929f729d40f963e4daf721826b4cd043c56ad421e4d21305d51d22",
+          "line_count": 6376,
+          "fixed_sha256": "61068f8c1fb24e764e0bb1d2b87c3584a546ade1786b6a24eee963db6575395e",
+          "patch_verified": true,
+          "problems": [],
+          "targets": [
+            {
+              "line": 621,
+              "kind": "removed_line",
+              "function": "reformat_many"
+            },
+            {
+              "line": 636,
+              "kind": "removed_line",
+              "function": "reformat_many"
+            },
+            {
+              "line": 646,
+              "kind": "removed_line",
+              "function": "schedule_formatting"
+            }
+          ]
+        }
+      ],
+      "benchmark_python": "3.8.3",
+      "historical_input_verified": false,
+      "capture_commit_matches": true,
+      "license_artifacts": [
+        {
+          "path": "LICENSE",
+          "sha256": "9c0428f0c3b4779850cf5bd96e11aaa8afc72d4a86d4a36223d7aba2e58d6e00",
+          "url": "https://github.com/psf/black/blob/26c9465a22c732ab1e17b0dec578fa3432e9b558/LICENSE"
+        }
+      ],
+      "test_files": [
+        {
+          "path": "tests/test_black.py",
+          "revision": "c0a7582e3d4cc8bec3b7f5a6c52b36880dcb57d7",
+          "sha256": "3a690fb9c66f3d85b89594f4577e3632ec069389e3af669becb3b899ded59373"
+        }
+      ],
+      "source_import_verified": {
+        "buggy": true,
+        "fixed": true
+      },
+      "deviations": [
+        {
+          "variant": "buggy",
+          "omitted_documentation_symlinks": [
+            "docs/authors.md",
+            "docs/blackd.md",
+            "docs/change_log.md",
+            "docs/contributing.md",
+            "docs/contributing_to_black.md",
+            "docs/editor_integration.md",
+            "docs/ignoring_unmodified_files.md",
+            "docs/installation_and_usage.md",
+            "docs/license.md",
+            "docs/pyproject_toml.md",
+            "docs/show_your_style.md",
+            "docs/testimonials.md",
+            "docs/the_black_code_style.md",
+            "docs/version_control_integration.md"
+          ]
+        },
+        "Generated inert _black_version.py constant 19.10b0 instead of invoking packaging; source otherwise pinned.",
+        {
+          "variant": "fixed",
+          "omitted_documentation_symlinks": [
+            "docs/authors.md",
+            "docs/blackd.md",
+            "docs/change_log.md",
+            "docs/contributing.md",
+            "docs/contributing_to_black.md",
+            "docs/editor_integration.md",
+            "docs/ignoring_unmodified_files.md",
+            "docs/installation_and_usage.md",
+            "docs/license.md",
+            "docs/pyproject_toml.md",
+            "docs/show_your_style.md",
+            "docs/testimonials.md",
+            "docs/the_black_code_style.md",
+            "docs/version_control_integration.md"
+          ]
+        }
+      ],
+      "test_outcomes": {
+        "buggy": {
+          "exit_code": 1,
+          "timeout": false,
+          "output_sha256": "70a889b244bfde87a1fa1956d3366a6af8ed6187f18ae593016e11c53740d1ff",
+          "latency_ms": 791.45
+        },
+        "fixed": {
+          "exit_code": 0,
+          "timeout": false,
+          "output_sha256": "4edec9068fbf6abe4f1945001b30397eccb9e901cc040512ea90454f11073c5f",
+          "latency_ms": 1033.2
+        }
+      }
+    },
+    {
+      "project": "httpie",
+      "bug_id": "3",
+      "status": "buggy_fails_fixed_passes",
+      "ready_for_prompt_review": true,
+      "upstream": "https://github.com/jakubroztocil/httpie/",
+      "buggy_commit": "8c33e5e3d31d3cd6476c4d9bc963a4c529f883d2",
+      "fixed_commit": "589887939507ff26d36ec74bd2c045819cfa3d56",
+      "metadata_sha256": "d7c0de69b383b501e8f06a2cb49fcc09ad859135f4e772f3ecd23f6ec44f966a",
+      "patch_sha256": "6c760254cb705312a5e6e9f79602b890bf09924e924ee58f718af81646393891",
+      "sources": [
+        {
+          "path": "httpie/sessions.py",
+          "sha256": "ff0137c2be4cf5649d40abd6cccd18314031ed6ce6adb56181b96cc95445b511",
+          "line_count": 152,
+          "fixed_sha256": "ef0588dcbf83c97fc823cf7e8e695075066984d8a194a72798ac3cbd4baff069",
+          "patch_verified": true,
+          "problems": [],
+          "targets": [
+            {
+              "line": 103,
+              "kind": "insertion_anchor",
+              "function": "update_headers"
+            }
+          ]
+        }
+      ],
+      "benchmark_python": "3.7.3",
+      "historical_input_verified": false,
+      "capture_commit_matches": true,
+      "license_artifacts": [
+        {
+          "path": "LICENSE",
+          "sha256": "bf6c2c46fdaa00d4883540936f29acf26a43d937ba66151c75a1041b34f771be",
+          "url": "https://github.com/jakubroztocil/httpie/blob/8c33e5e3d31d3cd6476c4d9bc963a4c529f883d2/LICENSE"
+        }
+      ],
+      "test_files": [
+        {
+          "path": "tests/test_sessions.py",
+          "revision": "589887939507ff26d36ec74bd2c045819cfa3d56",
+          "sha256": "42345b4bb38bfff6f0a8e3e9e4071822cfe80d9dd8e9bd9f1763b17e54874bbb"
+        }
+      ],
+      "source_import_verified": {
+        "buggy": true,
+        "fixed": true
+      },
+      "deviations": [
+        "Clear configured pytest addopts for the explicitly selected regression test; coverage plugins are not required."
+      ],
+      "test_outcomes": {
+        "buggy": {
+          "exit_code": 1,
+          "timeout": false,
+          "output_sha256": "d64ac8a3bc85a9b6a02de0f587d1ce87b2fdbfb41ad1f86e7dc57a803c808a14",
+          "latency_ms": 2026.44
+        },
+        "fixed": {
+          "exit_code": 0,
+          "timeout": false,
+          "output_sha256": "0069e780bd8dd52cd030392e2af05bb29b82c88493ae99e5cf68ef1629d4988d",
+          "latency_ms": 1448.6
+        }
+      }
+    },
+    {
+      "project": "fastapi",
+      "bug_id": "16",
+      "status": "buggy_fails_fixed_passes",
+      "ready_for_prompt_review": true,
+      "upstream": "https://github.com/tiangolo/fastapi",
+      "buggy_commit": "92c825be6a7362099400c9c3fe8b01ea13add3dc",
+      "fixed_commit": "9745a5d1ae86a7fefacf79bdde8e5dd2d59fa2f4",
+      "metadata_sha256": "4f91658658a32936057369e4d8c2c04d43c194c3d5b1cc9cf33c2805e2bbc940",
+      "patch_sha256": "643808a7f5315905e4b97938acd1c96c0f64f8c466f585054877a92b0b7519d4",
+      "sources": [
+        {
+          "path": "fastapi/encoders.py",
+          "sha256": "fff6757d0fe9ec46068914ed0cc716dfc5f0bff2482fd05dd7ad7acc56a4416b",
+          "line_count": 79,
+          "fixed_sha256": "6cb30b00518c6c97abff01c127816f37ea2009c224049821366d1adcb4cfe91d",
+          "patch_verified": true,
+          "problems": [],
+          "targets": [
+            {
+              "line": 18,
+              "kind": "removed_line",
+              "function": "jsonable_encoder"
+            },
+            {
+              "line": 19,
+              "kind": "removed_line",
+              "function": "jsonable_encoder"
+            },
+            {
+              "line": 20,
+              "kind": "removed_line",
+              "function": "jsonable_encoder"
+            },
+            {
+              "line": 21,
+              "kind": "removed_line",
+              "function": "jsonable_encoder"
+            },
+            {
+              "line": 22,
+              "kind": "removed_line",
+              "function": "jsonable_encoder"
+            },
+            {
+              "line": 23,
+              "kind": "removed_line",
+              "function": "jsonable_encoder"
+            },
+            {
+              "line": 24,
+              "kind": "removed_line",
+              "function": "jsonable_encoder"
+            },
+            {
+              "line": 25,
+              "kind": "removed_line",
+              "function": "jsonable_encoder"
+            },
+            {
+              "line": 26,
+              "kind": "removed_line",
+              "function": "jsonable_encoder"
+            },
+            {
+              "line": 27,
+              "kind": "removed_line",
+              "function": "jsonable_encoder"
+            },
+            {
+              "line": 28,
+              "kind": "removed_line",
+              "function": "jsonable_encoder"
+            }
+          ]
+        }
+      ],
+      "benchmark_python": "3.8.3",
+      "historical_input_verified": false,
+      "capture_commit_matches": true,
+      "license_artifacts": [
+        {
+          "path": "LICENSE",
+          "sha256": "4ec89ffc81485b97fec584b2d4a961032eeffe834453894fd9c1274906cc744e",
+          "url": "https://github.com/tiangolo/fastapi/blob/92c825be6a7362099400c9c3fe8b01ea13add3dc/LICENSE"
+        }
+      ],
+      "test_files": [
+        {
+          "path": "tests/test_datetime_custom_encoder.py",
+          "revision": "9745a5d1ae86a7fefacf79bdde8e5dd2d59fa2f4",
+          "sha256": "12be739acc6bc8d88a6819572458073d39616465c6c700352e6b42a58cfcaba8"
+        },
+        {
+          "path": "tests/test_jsonable_encoder.py",
+          "revision": "9745a5d1ae86a7fefacf79bdde8e5dd2d59fa2f4",
+          "sha256": "e8b162e7e04958cdcde6dc9e4b94662f19f88e1b8579a45c9af511d9aa403db5"
+        }
+      ],
+      "source_import_verified": {
+        "buggy": true,
+        "fixed": true
+      },
+      "deviations": [
+        "Clear configured pytest addopts for the explicitly selected regression test; coverage plugins are not required."
+      ],
+      "test_outcomes": {
+        "buggy": {
+          "exit_code": 1,
+          "timeout": false,
+          "output_sha256": "2455f7eb5f3604c9656703e713a29aba7368f2307e336ce4a40c72c527ecab03",
+          "latency_ms": 908.63
+        },
+        "fixed": {
+          "exit_code": 0,
+          "timeout": false,
+          "output_sha256": "4c5c733fbe215e4879bbfca9051c5443baa81fb4a27e2aeba865fda78df165f1",
+          "latency_ms": 747.0
+        }
+      }
+    },
+    {
+      "project": "cookiecutter",
+      "bug_id": "1",
+      "status": "buggy_fails_fixed_passes",
+      "ready_for_prompt_review": true,
+      "upstream": "https://github.com/cookiecutter/cookiecutter",
+      "buggy_commit": "c15633745df6abdb24e02746b82aadb20b8cdf8c",
+      "fixed_commit": "7f6804c4953a18386809f11faf4d86898570debc",
+      "metadata_sha256": "d2f49c7520a582158016615638637b6b84222fc7e6728fac9c08c1eeb75e06ae",
+      "patch_sha256": "8aa49e1d1a81356cece4244bf12b4e0c1924ce1ebe7d50897646f8b19200c3bf",
+      "sources": [
+        {
+          "path": "cookiecutter/generate.py",
+          "sha256": "d2ddeb8d16a7fb13f2f71aa3e1b7ce50335ecb5198f6b4030c4a0151f8e96dea",
+          "line_count": 380,
+          "fixed_sha256": "2b4dd2d26aa6db86413391bd678363b4d084b1aa0624a43afa6edd50e4b0c77e",
+          "patch_verified": true,
+          "problems": [],
+          "targets": [
+            {
+              "line": 85,
+              "kind": "removed_line",
+              "function": "generate_context"
+            }
+          ]
+        }
+      ],
+      "benchmark_python": "3.6.9",
+      "historical_input_verified": false,
+      "capture_commit_matches": true,
+      "license_artifacts": [
+        {
+          "path": "LICENSE",
+          "sha256": "7cc392465cc129046da7e088d618be67238e0c1a440e207f494333979f1e60dc",
+          "url": "https://github.com/cookiecutter/cookiecutter/blob/c15633745df6abdb24e02746b82aadb20b8cdf8c/LICENSE"
+        }
+      ],
+      "test_files": [
+        {
+          "path": "tests/test_generate_context.py",
+          "revision": "7f6804c4953a18386809f11faf4d86898570debc",
+          "sha256": "370bcf475b890e24d3dff5c556a78d604e59f3fbe1854e5dbece9e0e3de59481"
+        }
+      ],
+      "source_import_verified": {
+        "buggy": true,
+        "fixed": true
+      },
+      "deviations": [
+        "Benchmark tox recipe replaced with direct pytest in the existing selected environment; no tox setup executed.",
+        "Clear configured pytest addopts for the explicitly selected regression test; coverage plugins are not required.",
+        {
+          "variant": "buggy",
+          "omitted_documentation_symlinks": [
+            "docs/AUTHORS.md",
+            "docs/BACKERS.md",
+            "docs/CODE_OF_CONDUCT.md",
+            "docs/CONTRIBUTING.md",
+            "docs/HISTORY.md",
+            "docs/README.md",
+            "docs/case_studies.md"
+          ]
+        },
+        {
+          "variant": "fixed",
+          "omitted_documentation_symlinks": [
+            "docs/AUTHORS.md",
+            "docs/BACKERS.md",
+            "docs/CODE_OF_CONDUCT.md",
+            "docs/CONTRIBUTING.md",
+            "docs/HISTORY.md",
+            "docs/README.md",
+            "docs/case_studies.md"
+          ]
+        }
+      ],
+      "test_outcomes": {
+        "buggy": {
+          "exit_code": 1,
+          "timeout": false,
+          "output_sha256": "b62a266476a2ff94e29cefb826b09b6f38e960cbcd1253acfa5922139336e1cc",
+          "latency_ms": 1140.14
+        },
+        "fixed": {
+          "exit_code": 0,
+          "timeout": false,
+          "output_sha256": "dc3d50693e2f50b95455c2ee9a43a2946510ff62175f729cad38795659519260",
+          "latency_ms": 1748.55
+        }
+      }
+    },
+    {
+      "project": "black",
+      "bug_id": "3",
+      "status": "buggy_fails_fixed_passes",
+      "ready_for_prompt_review": true,
+      "upstream": "https://github.com/psf/black",
+      "buggy_commit": "8126b4f6a9342290de4655e6a8a78cd288ce7daa",
+      "fixed_commit": "7a14a37981862ef418f3cdb4a7e2375856f97529",
+      "metadata_sha256": "e76c0dd095d507314b97830c90cb72226aa14e507a0fc90cb58b7c6c3f98f118",
+      "patch_sha256": "2abe4abbe8dcdb8272b97b64e374f7243ef77878a348cff10876d811b5a87920",
+      "sources": [
+        {
+          "path": "black.py",
+          "sha256": "39028a4006e67238efea16ffee98c8d72084741bcddc79440ce3e3285d2fe22d",
+          "line_count": 4194,
+          "fixed_sha256": "7c52be7ab3fb18c7cb476f65214826efe095f4f0562b46b532d7a8005f13d9fd",
+          "patch_verified": true,
+          "problems": [],
+          "targets": [
+            {
+              "line": 397,
+              "kind": "removed_line",
+              "function": null
+            }
+          ]
+        }
+      ],
+      "benchmark_python": "3.8.3",
+      "historical_input_verified": false,
+      "capture_commit_matches": true,
+      "license_artifacts": [
+        {
+          "path": "LICENSE",
+          "sha256": "9c0428f0c3b4779850cf5bd96e11aaa8afc72d4a86d4a36223d7aba2e58d6e00",
+          "url": "https://github.com/psf/black/blob/8126b4f6a9342290de4655e6a8a78cd288ce7daa/LICENSE"
+        }
+      ],
+      "test_files": [
+        {
+          "path": "tests/test_black.py",
+          "revision": "7a14a37981862ef418f3cdb4a7e2375856f97529",
+          "sha256": "bfe05145b8c4361ae744ccb71ab8780dd392ac712596c77075c779f6749fbc15"
+        }
+      ],
+      "source_import_verified": {
+        "buggy": true,
+        "fixed": true
+      },
+      "deviations": [
+        {
+          "variant": "buggy",
+          "omitted_documentation_symlinks": [
+            "docs/authors.md",
+            "docs/blackd.md",
+            "docs/change_log.md",
+            "docs/contributing.md",
+            "docs/contributing_to_black.md",
+            "docs/editor_integration.md",
+            "docs/ignoring_unmodified_files.md",
+            "docs/installation_and_usage.md",
+            "docs/license.md",
+            "docs/pyproject_toml.md",
+            "docs/show_your_style.md",
+            "docs/testimonials.md",
+            "docs/the_black_code_style.md",
+            "docs/version_control_integration.md"
+          ]
+        },
+        "Generated inert _black_version.py constant 19.10b0 instead of invoking packaging; source otherwise pinned.",
+        "Added empty tests/__init__.py to prevent installed tests package shadowing the pinned regression tests.",
+        {
+          "variant": "fixed",
+          "omitted_documentation_symlinks": [
+            "docs/authors.md",
+            "docs/blackd.md",
+            "docs/change_log.md",
+            "docs/contributing.md",
+            "docs/contributing_to_black.md",
+            "docs/editor_integration.md",
+            "docs/ignoring_unmodified_files.md",
+            "docs/installation_and_usage.md",
+            "docs/license.md",
+            "docs/pyproject_toml.md",
+            "docs/show_your_style.md",
+            "docs/testimonials.md",
+            "docs/the_black_code_style.md",
+            "docs/version_control_integration.md"
+          ]
+        }
+      ],
+      "test_outcomes": {
+        "buggy": {
+          "exit_code": 1,
+          "timeout": false,
+          "output_sha256": "5a0ba3e359af944910f2c8251b7145ecef428df6ac3db2e1370afe624bce9c90",
+          "latency_ms": 719.67
+        },
+        "fixed": {
+          "exit_code": 0,
+          "timeout": false,
+          "output_sha256": "ec350df90564a6134805fd24c31e86f8065e3781c3e0777110f7e2b960cda3c1",
+          "latency_ms": 849.49
+        }
+      }
+    },
+    {
+      "project": "fastapi",
+      "bug_id": "14",
+      "status": "both_revisions_fail",
+      "ready_for_prompt_review": false,
+      "upstream": "https://github.com/tiangolo/fastapi",
+      "buggy_commit": "2ddb804940bbcad4ed730b2a910c8fd3c1167127",
+      "fixed_commit": "b7d184363fad5f6b55d15ec3a3a844aa81092bbd",
+      "metadata_sha256": "e810e066cf6f92aa8fba8bf2dbb01edf1fa3d5b144019dfd0a43eb4427d36e64",
+      "patch_sha256": "65aa1ca13cc3ad2852e0de5af5ab6b2d4ec45616edfa5cc45951a2acd2b8df5b",
+      "sources": [
+        {
+          "path": "fastapi/openapi/models.py",
+          "sha256": "c38c5bbb5d29011cfaf057768c48a286b69d5ac66d0aba23b262da2c91113ca2",
+          "line_count": 354,
+          "fixed_sha256": "86453cce3e8c12e8ea9937744ed0f4fea0c76db84880a9100d7bda893e104ce3",
+          "patch_verified": true,
+          "problems": [],
+          "targets": [
+            {
+              "line": 102,
+              "kind": "removed_line",
+              "function": null
+            },
+            {
+              "line": 123,
+              "kind": "removed_line",
+              "function": null
+            },
+            {
+              "line": 223,
+              "kind": "removed_line",
+              "function": null
+            }
+          ]
+        }
+      ],
+      "benchmark_python": "3.8.3",
+      "historical_input_verified": false,
+      "capture_commit_matches": true,
+      "license_artifacts": [
+        {
+          "path": "LICENSE",
+          "sha256": "4ec89ffc81485b97fec584b2d4a961032eeffe834453894fd9c1274906cc744e",
+          "url": "https://github.com/tiangolo/fastapi/blob/2ddb804940bbcad4ed730b2a910c8fd3c1167127/LICENSE"
+        }
+      ],
+      "test_files": [
+        {
+          "path": "tests/test_additional_properties.py",
+          "revision": "b7d184363fad5f6b55d15ec3a3a844aa81092bbd",
+          "sha256": "04f4bf0b702aff5d505368949a094eef8bbd9848cb782bdd4b71227d2246cd81"
+        }
+      ],
+      "source_import_verified": {
+        "buggy": true,
+        "fixed": true
+      },
+      "deviations": [
+        "Clear configured pytest addopts for the explicitly selected regression test; coverage plugins are not required."
+      ],
+      "test_outcomes": {
+        "buggy": {
+          "exit_code": 1,
+          "timeout": false,
+          "output_sha256": "99068d0471222f737d5107cffb4a11e0d43f194797c54d2a0f6868f950182b63",
+          "latency_ms": 987.69
+        },
+        "fixed": {
+          "exit_code": 1,
+          "timeout": false,
+          "output_sha256": "d0d37f1ea696b91f2d91fb1c8025e955115574a24096029cff5710a26955670f",
+          "latency_ms": 890.11
+        }
+      }
+    }
+  ],
+  "previous_attempts": [
+    {
+      "report_sha256": "31da69847372bd522c606579ea57b6cec28730dd56b72984bffcd1048c2961da",
+      "created_at": "2026-10-06T21:37:51.805678+00:00",
+      "cases": [
+        {
+          "project": "black",
+          "bug_id": "1",
+          "status": "validation_error"
+        },
+        {
+          "project": "httpie",
+          "bug_id": "3",
+          "status": "buggy_fails_fixed_passes"
+        },
+        {
+          "project": "fastapi",
+          "bug_id": "16",
+          "status": "buggy_fails_fixed_passes"
+        },
+        {
+          "project": "cookiecutter",
+          "bug_id": "1",
+          "status": "validation_error"
+        },
+        {
+          "project": "black",
+          "bug_id": "3",
+          "status": "validation_error"
+        },
+        {
+          "project": "fastapi",
+          "bug_id": "14",
+          "status": "unconfirmed_failure"
+        }
+      ]
+    },
+    {
+      "report_sha256": "e2a980eb97c2e89fbbb04855c0d188926eccf95a76c75ba8ac0ad6a41a1d5c04",
+      "created_at": "2026-10-06T21:38:48.408991+00:00",
+      "cases": [
+        {
+          "project": "black",
+          "bug_id": "1",
+          "status": "buggy_fails_fixed_passes"
+        },
+        {
+          "project": "httpie",
+          "bug_id": "3",
+          "status": "buggy_fails_fixed_passes"
+        },
+        {
+          "project": "fastapi",
+          "bug_id": "16",
+          "status": "buggy_fails_fixed_passes"
+        },
+        {
+          "project": "cookiecutter",
+          "bug_id": "1",
+          "status": "environment_failure"
+        },
+        {
+          "project": "black",
+          "bug_id": "3",
+          "status": "environment_failure"
+        },
+        {
+          "project": "fastapi",
+          "bug_id": "14",
+          "status": "both_revisions_fail"
+        }
+      ]
+    },
+    {
+      "report_sha256": "338d54451a321e9bfb3859a82d137c5383b0e77ce3e86567652356ad78885cbf",
+      "created_at": "2026-10-06T21:39:48.844888+00:00",
+      "cases": [
+        {
+          "project": "black",
+          "bug_id": "1",
+          "status": "buggy_fails_fixed_passes"
+        },
+        {
+          "project": "httpie",
+          "bug_id": "3",
+          "status": "buggy_fails_fixed_passes"
+        },
+        {
+          "project": "fastapi",
+          "bug_id": "16",
+          "status": "buggy_fails_fixed_passes"
+        },
+        {
+          "project": "cookiecutter",
+          "bug_id": "1",
+          "status": "buggy_fails_fixed_passes"
+        },
+        {
+          "project": "black",
+          "bug_id": "3",
+          "status": "buggy_fails_fixed_passes"
+        },
+        {
+          "project": "fastapi",
+          "bug_id": "14",
+          "status": "both_revisions_fail"
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Original research repositories are read only. Fresh copies use pinned commits and identical fixed-revision tests.",
+    "Existing WSL environments are reused, not benchmark-exact environments. Versions and package inventories are retained.",
+    "Fresh subprocesses are not a sandbox. No archive scripts, setup.sh, tox setup, or model calls run.",
+    "Buggy-fails/fixed-passes is a reproduction gate, not proof of historical prompt identity or leakage-free inputs.",
+    "Both old patch context and the complete patched file were checked against pinned buggy/fixed blobs. Removed old lines and additive anchors are separately marked; AST function names are derived from the original source."
+  ]
+}

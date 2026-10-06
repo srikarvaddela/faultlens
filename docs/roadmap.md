@@ -31,6 +31,9 @@
 
 ## 4 — Real-world benchmark
 
+- [x] Six-case input-readiness audit with pinned source, patch verification, paired regression tests, and local provenance ledger
+- [x] Archived capture commit identity audit across 199 cases
+
 - [ ] Document benchmark provenance, licenses, and execution isolation
 - [ ] Reproduce real bugs and retain environment manifests
 - [ ] Predefine datasets, metrics, exclusions, and baselines

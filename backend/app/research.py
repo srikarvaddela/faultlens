@@ -137,7 +137,11 @@ def save_import(session, payload):
     existing = session.get(ResearchImport, payload["id"])
     if existing:
         if existing.payload.get("importer_version") != payload.get("importer_version"):
-            existing.payload = payload
+            # The archive hash is unchanged; retain its separately produced audit.
+            upgraded = dict(payload)
+            if existing.payload.get('real_validation'):
+                upgraded['real_validation'] = existing.payload['real_validation']
+            existing.payload = upgraded
             session.commit()
         return existing.id
     session.add(ResearchImport(id=payload["id"], name=payload["name"], created_at=payload["imported_at"], payload=payload))
