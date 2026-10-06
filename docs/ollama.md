@@ -11,6 +11,8 @@ In Prompt lab, prepare a plan, select an installed model, and choose **Compare s
 
 ## Retained evidence
 
+For frozen validated real cases, choose the real input source and follow [real-case inference](real-inference.md). Those runs use full oracle-selected files, file/line parsing, a 32K requested context, and explicit context exclusions. The [first measured real comparison](benchmarks/real-ollama-comparison.md) reports its separate file-conditioned metric. The defaults described below apply to curated runs.
+
 Every complete request body and its messages are saved before sending. Subsequent steps incorporate the actual prior responses. Saved transcripts retain full Ollama responses, model digest, server version, options, prompt/evidence hashes, wall-clock latency, token counts and native timing fields where returned, and final parse/line-ranking results. Exports preserve partial calls even on failure. Ground truth enters grading only; it is not included in model request bodies.
 
 Default options are temperature 0, seed 42, 256 generated tokens per call, and a 4096-token context. Final calls request a JSON candidates schema, then use the strict parser. A malformed or missing final response is surfaced as a parse failure, not silently repaired. Fixed settings do not guarantee deterministic inference across machines or runtimes. Calls execute sequentially; cold model loading and cache reuse affect wall time, so these timings are not a fair comparative latency benchmark. Native load_duration is preserved and shown when returned. A length stop is also retained so truncated intermediate analyses remain visible.

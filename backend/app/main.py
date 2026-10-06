@@ -13,12 +13,13 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from .catalog import BY_ID, CATALOG, public_bug
-from .database import Experiment, Job, ResearchImport, PromptPlan, InferenceRun, get_session, initialize_database
+from .database import Experiment, Job, ResearchImport, PromptPlan, InferenceRun, RealCase, get_session, initialize_database
 from .evaluation import METHODS, evaluate, summarize
 from .jobs import enqueue, job_view
 from .prompting import prepare, render_step, digest, VERSION
 from . import ollama_client
 from .ollama_runs import enqueue_run
+from . import real_prompting
 
 
 @asynccontextmanager
@@ -63,6 +64,33 @@ class LocalRunRequest(BaseModel):
     compare: bool = True
 
 
+class RealPlanRequest(BaseModel):
+    case_id: str
+    strategy: Literal['single', 'chain_evidence'] = 'single'
+
+
+@app.get('/api/real-cases')
+def real_cases(session: DB):
+    rows = session.scalars(select(RealCase).order_by(RealCase.created_at)).all()
+    return [{'id': row.id, 'case_label': row.payload['case_label'], 'status': row.payload['status'],
+             'reason': row.payload['reason'], 'provenance': row.payload['provenance'],
+             'files': [{'path': s['path'], 'line_count': s['line_count'], 'sha256': s['sha256']} for s in row.payload['sources']]} for row in rows]
+
+
+@app.post('/api/real-prompt-plans', status_code=201)
+def create_real_plan(request: RealPlanRequest, session: DB):
+    case = session.get(RealCase, request.case_id)
+    if not case:
+        raise HTTPException(404, 'Frozen real case not found')
+    try:
+        payload = real_prompting.prepare(case.payload, request.strategy)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    session.add(PromptPlan(id=payload['id'], created_at=payload['created_at'], payload=payload))
+    session.commit()
+    return payload
+
+
 @app.get('/api/ollama/status')
 def ollama_status():
     try:
@@ -77,7 +105,7 @@ def create_local_run(request: LocalRunRequest, session: DB):
     if not saved:
         raise HTTPException(404, 'Prompt plan not found')
     plan = deepcopy(saved.payload)
-    if plan['prompt_version'] != VERSION:
+    if plan['prompt_version'] != (real_prompting.VERSION if plan.get('kind') == 'real' else VERSION):
         raise HTTPException(409, 'Prepare a plan with the current prompt version')
     try:
         inventory = ollama_client.inventory()
@@ -114,7 +142,7 @@ def get_local_run(run_id: str, session: DB):
     if not run:
         raise HTTPException(404, 'Local inference run not found')
     job = session.get(Job, run_id)
-    return {**run.payload, 'status': job.status, 'cancel_requested': job.cancel_requested}
+    return {**run.payload, 'status': job.status, 'cancel_requested': job.cancel_requested, 'kind': run.payload['plans'][0].get('kind', 'curated')}
 
 
 @app.get('/api/ollama/runs/{run_id}/export')
@@ -140,7 +168,7 @@ def create_plan(request: PlanRequest, session: DB):
 
 @app.get('/api/prompt-plans')
 def list_plans(session: DB):
-    return [{'id': plan.id, 'created_at': plan.created_at, 'bug_id': plan.payload['bug_id'], 'strategy': plan.payload['strategy'], 'evidence_mode': plan.payload['evidence_mode'], 'prompt_version': plan.payload['prompt_version']} for plan in session.scalars(select(PromptPlan).order_by(PromptPlan.created_at.desc()).limit(100)).all()]
+    return [{'id': plan.id, 'created_at': plan.created_at, 'bug_id': plan.payload['bug_id'], 'strategy': plan.payload['strategy'], 'evidence_mode': plan.payload['evidence_mode'], 'prompt_version': plan.payload['prompt_version'], 'kind': plan.payload.get('kind', 'curated')} for plan in session.scalars(select(PromptPlan).order_by(PromptPlan.created_at.desc()).limit(100)).all()]
 
 
 @app.get('/api/prompt-plans/{plan_id}')

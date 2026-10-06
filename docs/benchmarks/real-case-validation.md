@@ -29,4 +29,4 @@ Existing WSL Python environments were reused, with package inventories and actua
 
 This selected set does not estimate reproduction success across BugsInPy. The 199-case check covers commit identities only; fresh tests cover six cases. No historical research score or leakage label was changed. Full private logs, paths, and inventories remain local and can be inspected in the app's Research panel.
 
-Real-case inference remains gated on freezing an appropriate source context and fresh evidence, reviewing clues/leakage, and defining file/line scoring for additive and module-level changes. The existing model queue continues to accept curated fixtures. See [validator setup and methodology](../real-case-validation.md).
+The subsequent [first real-case comparison](real-ollama-comparison.md) freezes full files and fresh evidence for three eligible cases with file/line scoring, while excluding oversized Black files and the failed control. It remains file-conditioned with oracle-assisted file selection and unverified leakage control. See [validator setup and methodology](../real-case-validation.md).

@@ -14,6 +14,7 @@ from .database import InferenceRun, Job
 from .jobs import owned, heartbeat, LEASE_SECONDS, job_view
 from . import ollama_client
 from .prompting import digest, render_step, parse_ranking, VERSION
+from . import real_prompting
 
 OPTIONS = {'temperature': 0, 'seed': 42, 'num_predict': 256, 'num_ctx': 4096}
 
@@ -21,7 +22,8 @@ OPTIONS = {'temperature': 0, 'seed': 42, 'num_predict': 256, 'num_ctx': 4096}
 def enqueue_run(session, plans, identity, server_version):
     job_id = str(uuid4())
     created = datetime.now(timezone.utc).isoformat()
-    payload = {'id': job_id, 'created_at': created, 'provider': 'ollama_local', 'plans': deepcopy(plans), 'model_identity': identity, 'server_version': server_version, 'options': dict(OPTIONS), 'calls': [], 'results': [], 'error': None, 'notes': ['Curated-case smoke test, not a benchmark or reproduction of the GPT-5 study.', 'No automatic inference replay after errors or worker restarts. Cancellation is cooperative between bounded calls.']}
+    real = plans[0].get('kind') == 'real'
+    payload = {'id': job_id, 'created_at': created, 'provider': 'ollama_local', 'plans': deepcopy(plans), 'model_identity': identity, 'server_version': server_version, 'options': dict(real_prompting.OPTIONS if real else OPTIONS), 'calls': [], 'results': [], 'error': None, 'notes': ['File-conditioned real-case comparison with oracle-assisted file selection; not repository-wide localization or historical study reproduction.' if real else 'Curated-case smoke test, not a benchmark or reproduction of the GPT-5 study.', 'No automatic inference replay after errors or worker restarts. Cancellation is cooperative between bounded calls.']}
     session.add(InferenceRun(id=job_id, created_at=created, payload=payload))
     session.add(Job(id=job_id, name=f'Ollama · {plans[0]["bug_id"]} · {identity["name"]}', created_at=created, request={'kind': 'ollama', 'bug_ids': [plan['bug_id'] for plan in plans], 'methods': ['ollama']}))
     session.commit()
@@ -81,8 +83,15 @@ def run_owned(factory, job_id, token):
         if not any(model['name'] == identity['name'] and model['digest'] == identity['digest'] for model in inventory['models']):
             raise ollama_client.OllamaError('Installed model identity changed; prepare a new run')
         for plan_index, plan in enumerate(payload['plans']):
-            if plan['prompt_version'] != VERSION or hashlib.sha256(BY_ID[plan['bug_id']]['source'].encode()).hexdigest() != plan['source_sha256']:
+            real = plan.get('kind') == 'real'
+            if real:
+                try:
+                    real_prompting.verify(plan)
+                except ValueError as exc:
+                    raise ollama_client.OllamaError(str(exc)) from exc
+            elif plan['prompt_version'] != VERSION or hashlib.sha256(BY_ID[plan['bug_id']]['source'].encode()).hexdigest() != plan['source_sha256']:
                 raise ollama_client.OllamaError('Plan source or prompt version changed')
+            file_lines = {s['path']: s['line_count'] for s in plan['sources']} if real else None
             responses = []
             for step in range(len(plan['steps'])):
                 if not heartbeat(factory, job_id, token, plan_index):
@@ -93,7 +102,12 @@ def run_owned(factory, job_id, token):
                 if payload.get('server_version') and current.get('server_version') != payload['server_version']:
                     raise ollama_client.OllamaError('Ollama server version changed between calls')
                 messages = deepcopy(plan['first_messages']) if step == 0 else render_step(plan, step, responses)
-                request_payload = ollama_client.build_request(identity['name'], messages, payload['options'], step == len(plan['steps']) - 1, len(plan['source'].splitlines()))
+                if real:
+                    try:
+                        real_prompting.budget_check(messages)
+                    except ValueError as exc:
+                        raise ollama_client.OllamaError(str(exc)) from exc
+                request_payload = ollama_client.build_request(identity['name'], messages, payload['options'], step == len(plan['steps']) - 1, len(plan['source'].splitlines()), **({'file_lines': file_lines} if real else {}))
                 call = {'plan_id': plan['id'], 'strategy': plan['strategy'], 'step': step + 1, 'server_version': current.get('server_version'), 'messages': messages, 'messages_sha256': digest(messages), 'request_payload': request_payload, 'started_at': datetime.now(timezone.utc).isoformat(), 'status': 'request_saved', 'response': None}
                 if not checkpoint(factory, job_id, token, lambda saved: saved['calls'].append(call)):
                     return
@@ -115,9 +129,13 @@ def run_owned(factory, job_id, token):
                 responses.append(content)
             if not heartbeat(factory, job_id, token, plan_index + 1):
                 return
-            parsed = parse_ranking(responses[-1], len(plan['source'].splitlines()))
-            rank = next((index + 1 for index, candidate in enumerate(parsed['candidates']) if candidate['line'] == BY_ID[plan['bug_id']]['fault_line']), None)
-            result = {'plan_id': plan['id'], 'strategy': plan['strategy'], 'parse': parsed, 'fault_rank': rank, 'top1': rank == 1, 'top3': rank is not None and rank <= 3, 'reciprocal_rank': 1 / rank if rank else 0, 'grading_fault_line': BY_ID[plan['bug_id']]['fault_line']}
+            if real:
+                parsed = real_prompting.parse_ranking(responses[-1], file_lines)
+                result = {'plan_id': plan['id'], 'strategy': plan['strategy'], 'parse': parsed, **real_prompting.score(plan, parsed)}
+            else:
+                parsed = parse_ranking(responses[-1], len(plan['source'].splitlines()))
+                rank = next((index + 1 for index, candidate in enumerate(parsed['candidates']) if candidate['line'] == BY_ID[plan['bug_id']]['fault_line']), None)
+                result = {'plan_id': plan['id'], 'strategy': plan['strategy'], 'parse': parsed, 'fault_rank': rank, 'top1': rank == 1, 'top3': rank is not None and rank <= 3, 'reciprocal_rank': 1 / rank if rank else 0, 'grading_fault_line': BY_ID[plan['bug_id']]['fault_line']}
             if not checkpoint(factory, job_id, token, lambda saved: saved['results'].append(result)):
                 return
         terminal(factory, job_id, token, 'completed')

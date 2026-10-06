@@ -1,0 +1,450 @@
+{
+  "created_at": "2026-10-06T23:42:26.670950+00:00",
+  "completed_at": "2026-10-06T23:46:21.569736+00:00",
+  "selection": [
+    {
+      "id": "1514b1add9460652b5dc151cc487b2f5d6f3d477e369ccbc5b30a42aa06979ff",
+      "case_label": "black#1",
+      "status": "excluded",
+      "reason": "Full-file input exceeds conservative context budget; no source cropping or silent truncation allowed",
+      "files": [
+        {
+          "path": "black.py",
+          "line_count": 6376,
+          "sha256": "21e170526e929f729d40f963e4daf721826b4cd043c56ad421e4d21305d51d22"
+        }
+      ]
+    },
+    {
+      "id": "27e4b90106f5e8f25f2af506673a687a2304645d2d519aeb8db0e4f44e1a063e",
+      "case_label": "httpie#3",
+      "status": "ready",
+      "reason": null,
+      "files": [
+        {
+          "path": "httpie/sessions.py",
+          "line_count": 152,
+          "sha256": "ff0137c2be4cf5649d40abd6cccd18314031ed6ce6adb56181b96cc95445b511"
+        }
+      ]
+    },
+    {
+      "id": "de6ebed73dd884d8d9092b8e930c35b97ed9c1b34b6130cb1303e14f7fe3f868",
+      "case_label": "fastapi#16",
+      "status": "ready",
+      "reason": null,
+      "files": [
+        {
+          "path": "fastapi/encoders.py",
+          "line_count": 79,
+          "sha256": "fff6757d0fe9ec46068914ed0cc716dfc5f0bff2482fd05dd7ad7acc56a4416b"
+        }
+      ]
+    },
+    {
+      "id": "ba463036a96606ff59e5d3f2c9e231909aa69668d5728c53384be78bbc0ff3d3",
+      "case_label": "cookiecutter#1",
+      "status": "ready",
+      "reason": null,
+      "files": [
+        {
+          "path": "cookiecutter/generate.py",
+          "line_count": 380,
+          "sha256": "d2ddeb8d16a7fb13f2f71aa3e1b7ce50335ecb5198f6b4030c4a0151f8e96dea"
+        }
+      ]
+    },
+    {
+      "id": "87314d7d270a54eb9b862c083ceefc294e1df81dc1164debaa3518e1852c7e6b",
+      "case_label": "black#3",
+      "status": "excluded",
+      "reason": "Full-file input exceeds conservative context budget; no source cropping or silent truncation allowed",
+      "files": [
+        {
+          "path": "black.py",
+          "line_count": 4194,
+          "sha256": "39028a4006e67238efea16ffee98c8d72084741bcddc79440ce3e3285d2fe22d"
+        }
+      ]
+    },
+    {
+      "id": "d07374d3c63d7efcccac6700c7ffc678897dc536ae478ae2fd804d0fda105c72",
+      "case_label": "fastapi#14",
+      "status": "excluded",
+      "reason": "both_revisions_fail",
+      "files": []
+    }
+  ],
+  "entries": [
+    {
+      "case_label": "httpie#3",
+      "run_id": "dc0d7ada-6b2f-4cd9-af43-d9e5381252fd",
+      "status": "completed",
+      "model_identity": {
+        "name": "llama3.2:1b",
+        "digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "size": 1321098329,
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "llama",
+          "families": [
+            "llama"
+          ],
+          "parameter_size": "1.2B",
+          "quantization_level": "Q8_0",
+          "context_length": 131072,
+          "embedding_length": 2048
+        }
+      },
+      "server_version": "0.35.1",
+      "options": {
+        "temperature": 0,
+        "seed": 42,
+        "num_predict": 256,
+        "num_ctx": 32768
+      },
+      "inputs": [
+        {
+          "strategy": "single",
+          "plan_sha256": "9e81a3a0933271ceea61989d6fd1bb847e10e41e620e4b0d44ec06202b3047fd",
+          "source_sha256": "bfb612a950b1f0d4b6eeca077b3c7c9c17eb39a5aa0d49cb281d00ef5ade432b",
+          "evidence_sha256": "35c0eb2e316fd19667334d800159775b5d79a49a28689eb9cff910c1d0c8a432",
+          "oracle_sha256": "c938bc534a5355c6d9e12ee9f0e807c86b8c3cc505b60741814250f4f37fb5d3",
+          "prompt_version": "faultlens-real-prompts-1.0.0"
+        },
+        {
+          "strategy": "chain_evidence",
+          "plan_sha256": "8aefdcb3d65ecdee6a838a238361d4f6d0232e9a6aa47e31a2de7a7402e9c7cf",
+          "source_sha256": "bfb612a950b1f0d4b6eeca077b3c7c9c17eb39a5aa0d49cb281d00ef5ade432b",
+          "evidence_sha256": "35c0eb2e316fd19667334d800159775b5d79a49a28689eb9cff910c1d0c8a432",
+          "oracle_sha256": "c938bc534a5355c6d9e12ee9f0e807c86b8c3cc505b60741814250f4f37fb5d3",
+          "prompt_version": "faultlens-real-prompts-1.0.0"
+        }
+      ],
+      "results": [
+        {
+          "strategy": "single",
+          "fault_rank": null,
+          "top1": false,
+          "top3": false,
+          "reciprocal_rank": 0,
+          "metric": "file_conditioned_patch_location_hit",
+          "parse_valid": true,
+          "parse_error": null
+        },
+        {
+          "strategy": "chain_evidence",
+          "fault_rank": null,
+          "top1": false,
+          "top3": false,
+          "reciprocal_rank": 0,
+          "metric": "file_conditioned_patch_location_hit",
+          "parse_valid": true,
+          "parse_error": null
+        }
+      ],
+      "calls": [
+        {
+          "strategy": "single",
+          "step": 1,
+          "status": "completed",
+          "messages_sha256": "1a189ae731a02b345f6cc5d9ca6b7c7ea685eaa09004571444424811637415b4",
+          "response_sha256": "ba7b991637c27227bc9281627ccb80c8349ac0917c6f0349d8c283c99e4f11a7",
+          "request_sha256": "e5118031c66c354fcd9ba206bdd19a8757f44039f4d80449c9ba8bd43c373966",
+          "latency_ms": 5782.52,
+          "input_tokens": 2571,
+          "output_tokens": 125,
+          "done_reason": "stop",
+          "load_ms": 4551.9339
+        },
+        {
+          "strategy": "chain_evidence",
+          "step": 1,
+          "status": "completed",
+          "messages_sha256": "637e17d81b4c4b58985fed8b8266f4b82fe51f8ce27e90840315e3a47798e591",
+          "response_sha256": "759d90fd67dd32840389bd0007d7c553ad1ca78f506ead1c5abf9439465ac937",
+          "request_sha256": "3ebfe518ce68871bddc1efc87d2f1ef1653ab44c732700c11e93783f4d5f26f0",
+          "latency_ms": 1026.11,
+          "input_tokens": 1188,
+          "output_tokens": 123,
+          "done_reason": "stop",
+          "load_ms": 7.2889
+        },
+        {
+          "strategy": "chain_evidence",
+          "step": 2,
+          "status": "completed",
+          "messages_sha256": "f31bd147a6088197168ed4604f15cdd74470ea1577e38e49440734a363062451",
+          "response_sha256": "9e643f1339c4b808bae7c4c3359f60146b65aefe7ab4bbabd11bd7f7702dfead",
+          "request_sha256": "8a06568e98fda69688217401f064f38dbc9335e90f678a8bda2eb59347f79f3f",
+          "latency_ms": 2146.94,
+          "input_tokens": 2652,
+          "output_tokens": 256,
+          "done_reason": "length",
+          "load_ms": 7.512
+        },
+        {
+          "strategy": "chain_evidence",
+          "step": 3,
+          "status": "completed",
+          "messages_sha256": "6a1c5b386d099bd07f50fc135ffb0228a7acc9b69e59e0c3f409a6ae36a9b233",
+          "response_sha256": "62d55907f6f8d229268549e08e4eff9e7fcbf00b8a7850e3750d20ad25b01b6e",
+          "request_sha256": "fe3bedccd1d4cbe0035293ea39398ca61f8f906f47cd40a7da7619f7259ffe61",
+          "latency_ms": 1255.03,
+          "input_tokens": 2961,
+          "output_tokens": 116,
+          "done_reason": "stop",
+          "load_ms": 4.9534
+        }
+      ]
+    },
+    {
+      "case_label": "fastapi#16",
+      "run_id": "fd7e60c0-1b7e-4fd3-94d4-59adfa11438a",
+      "status": "completed",
+      "model_identity": {
+        "name": "llama3.2:1b",
+        "digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "size": 1321098329,
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "llama",
+          "families": [
+            "llama"
+          ],
+          "parameter_size": "1.2B",
+          "quantization_level": "Q8_0",
+          "context_length": 131072,
+          "embedding_length": 2048
+        }
+      },
+      "server_version": "0.35.1",
+      "options": {
+        "temperature": 0,
+        "seed": 42,
+        "num_predict": 256,
+        "num_ctx": 32768
+      },
+      "inputs": [
+        {
+          "strategy": "single",
+          "plan_sha256": "650ed9fc7260abf0659242421b46b3a6c609c43b4d6c997fbc4ace87b7d730dc",
+          "source_sha256": "a3329b2fc09e284ac4d4ca848160f3fadb736e40823cd7ebac2a92557a564d96",
+          "evidence_sha256": "a6c8813be3c41787e7ac8df9cbb9c487e41f6c0deb5dc38fc424c23350e5c5a8",
+          "oracle_sha256": "5b55e89b1da855b8b515040d58492c9c50d549d167d8da20144011319f52ab10",
+          "prompt_version": "faultlens-real-prompts-1.0.0"
+        },
+        {
+          "strategy": "chain_evidence",
+          "plan_sha256": "fb706b26e6303c506c1ac96bc69a2215e9bcb69ff44f80ea711d17fc99cc2990",
+          "source_sha256": "a3329b2fc09e284ac4d4ca848160f3fadb736e40823cd7ebac2a92557a564d96",
+          "evidence_sha256": "a6c8813be3c41787e7ac8df9cbb9c487e41f6c0deb5dc38fc424c23350e5c5a8",
+          "oracle_sha256": "5b55e89b1da855b8b515040d58492c9c50d549d167d8da20144011319f52ab10",
+          "prompt_version": "faultlens-real-prompts-1.0.0"
+        }
+      ],
+      "results": [
+        {
+          "strategy": "single",
+          "fault_rank": 2,
+          "top1": false,
+          "top3": true,
+          "reciprocal_rank": 0.5,
+          "metric": "file_conditioned_patch_location_hit",
+          "parse_valid": true,
+          "parse_error": null
+        },
+        {
+          "strategy": "chain_evidence",
+          "fault_rank": 1,
+          "top1": true,
+          "top3": true,
+          "reciprocal_rank": 1.0,
+          "metric": "file_conditioned_patch_location_hit",
+          "parse_valid": true,
+          "parse_error": null
+        }
+      ],
+      "calls": [
+        {
+          "strategy": "single",
+          "step": 1,
+          "status": "completed",
+          "messages_sha256": "d588aeccc03f4c1fdc87cbeb8e9b575bebe442fbb3aabf3e000997407b8c0353",
+          "response_sha256": "68371c60902fe7687c711150f50ab46820818a07fad5e8822badcba8fa6d463b",
+          "request_sha256": "d2280155484068ef217a772f9236076ea0756a1b74e024b8ad9e4bb72dbed2e7",
+          "latency_ms": 1292.94,
+          "input_tokens": 1512,
+          "output_tokens": 142,
+          "done_reason": "stop",
+          "load_ms": 6.1213
+        },
+        {
+          "strategy": "chain_evidence",
+          "step": 1,
+          "status": "completed",
+          "messages_sha256": "4f10bede3a1626bfe81f82dd68a8e8d45e423a7fa10c1d66656458d255ca7a94",
+          "response_sha256": "fc246de4e6f587a5c0a0a9e8516a323ae8875812d8c78920c2105f9af11eb032",
+          "request_sha256": "c430ad86625c11ecd9a723da45c3ee25bf3657bc1ea98a49653b17a16434d2bd",
+          "latency_ms": 1224.65,
+          "input_tokens": 797,
+          "output_tokens": 176,
+          "done_reason": "stop",
+          "load_ms": 1.5709
+        },
+        {
+          "strategy": "chain_evidence",
+          "step": 2,
+          "status": "completed",
+          "messages_sha256": "7c9242962239978cffeb0a3554b754a9937cc0cea451f2d3117c9da970317942",
+          "response_sha256": "6ce587a0983704fabb8bb3b5cb5b614a758787c43b5b070f080dbd2cab7ec872",
+          "request_sha256": "2e21e5965f5c825a8629bdb1ac83849c25834d4840741ae9140ea0f45adbb0dc",
+          "latency_ms": 1787.62,
+          "input_tokens": 1646,
+          "output_tokens": 256,
+          "done_reason": "length",
+          "load_ms": 1.6001
+        },
+        {
+          "strategy": "chain_evidence",
+          "step": 3,
+          "status": "completed",
+          "messages_sha256": "b2b994422c8bcbf2291acc8fc47cc7691ad64dafb3c55da1ec41ba509a5abc0a",
+          "response_sha256": "1ba44b5730494c71b195846201282ef70b002aa5274a808f935dc7fe0f0d96c2",
+          "request_sha256": "1699683ad1122e8bd2d2060b300443f13ff3d018c60fd29fc4cd38ec65b021b6",
+          "latency_ms": 1152.21,
+          "input_tokens": 1955,
+          "output_tokens": 142,
+          "done_reason": "stop",
+          "load_ms": 2.0588
+        }
+      ]
+    },
+    {
+      "case_label": "cookiecutter#1",
+      "run_id": "9ceef3ad-83c0-4d40-b339-511355987c4c",
+      "status": "completed",
+      "model_identity": {
+        "name": "llama3.2:1b",
+        "digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+        "size": 1321098329,
+        "details": {
+          "parent_model": "",
+          "format": "gguf",
+          "family": "llama",
+          "families": [
+            "llama"
+          ],
+          "parameter_size": "1.2B",
+          "quantization_level": "Q8_0",
+          "context_length": 131072,
+          "embedding_length": 2048
+        }
+      },
+      "server_version": "0.35.1",
+      "options": {
+        "temperature": 0,
+        "seed": 42,
+        "num_predict": 256,
+        "num_ctx": 32768
+      },
+      "inputs": [
+        {
+          "strategy": "single",
+          "plan_sha256": "bf853984b140e028d028737aae0eee7b0b3fbd1d0db4bbce975977d2cc3286d7",
+          "source_sha256": "d38039917c130a3eae4d2e415cc110c694a63e834e774e2e86e666d52eaa2f86",
+          "evidence_sha256": "cbf8c2908b4beb491ad0f1ba863e63c3aaa48c01a9f436a20c3d73ab67754acc",
+          "oracle_sha256": "f4515ae949e5e5f0fb79b3d1369a654fc96f07e8650820dfe206a1fa11130916",
+          "prompt_version": "faultlens-real-prompts-1.0.0"
+        },
+        {
+          "strategy": "chain_evidence",
+          "plan_sha256": "9a7e9039fa315229df96cd67244af1b9bbae756886b65fb54691645dba3b8ff3",
+          "source_sha256": "d38039917c130a3eae4d2e415cc110c694a63e834e774e2e86e666d52eaa2f86",
+          "evidence_sha256": "cbf8c2908b4beb491ad0f1ba863e63c3aaa48c01a9f436a20c3d73ab67754acc",
+          "oracle_sha256": "f4515ae949e5e5f0fb79b3d1369a654fc96f07e8650820dfe206a1fa11130916",
+          "prompt_version": "faultlens-real-prompts-1.0.0"
+        }
+      ],
+      "results": [
+        {
+          "strategy": "single",
+          "fault_rank": 3,
+          "top1": false,
+          "top3": true,
+          "reciprocal_rank": 0.3333333333333333,
+          "metric": "file_conditioned_patch_location_hit",
+          "parse_valid": true,
+          "parse_error": null
+        },
+        {
+          "strategy": "chain_evidence",
+          "fault_rank": 2,
+          "top1": false,
+          "top3": true,
+          "reciprocal_rank": 0.5,
+          "metric": "file_conditioned_patch_location_hit",
+          "parse_valid": true,
+          "parse_error": null
+        }
+      ],
+      "calls": [
+        {
+          "strategy": "single",
+          "step": 1,
+          "status": "completed",
+          "messages_sha256": "b1dcf17a0e36027fc5d309134f494115de2004b05a5ae7341915175be2437581",
+          "response_sha256": "da59a816ba7f43039cb4d2b03ae2b57fc27be3e6d176a53e80697d3d6b377259",
+          "request_sha256": "f958c369e83c571fed7ef098cadc00c8e14ca9586989ed2c5b57cc1d4108774b",
+          "latency_ms": 1703.54,
+          "input_tokens": 4446,
+          "output_tokens": 106,
+          "done_reason": "stop",
+          "load_ms": 4.7079
+        },
+        {
+          "strategy": "chain_evidence",
+          "step": 1,
+          "status": "completed",
+          "messages_sha256": "22c4ef030df6ce7700cc2f498bff63a377b9bbb81aba960cf1c7305db250f76d",
+          "response_sha256": "810856e25a3d565f97b81d50838c788bfea57638c38295e417b8cad73fc75d1c",
+          "request_sha256": "00ea76b3974384ab5e40b5483355091b0e42e85b21b26e9e6d1e96073d07b2d5",
+          "latency_ms": 1159.31,
+          "input_tokens": 607,
+          "output_tokens": 143,
+          "done_reason": "stop",
+          "load_ms": 9.0294
+        },
+        {
+          "strategy": "chain_evidence",
+          "step": 2,
+          "status": "completed",
+          "messages_sha256": "f78a56f9c1a6e578a27b67968cccb169a5247044584ffeb078874c9ecf45491b",
+          "response_sha256": "ec5e98ad3d7be7e8ac74757fbbda200ccc7c15e50752746b00da9e34c14c9bf0",
+          "request_sha256": "f6cd601a4da37dfe31136dbac46bb15605f457ae4b34da752311ea3c792c63b2",
+          "latency_ms": 2307.68,
+          "input_tokens": 4547,
+          "output_tokens": 256,
+          "done_reason": "length",
+          "load_ms": 6.745
+        },
+        {
+          "strategy": "chain_evidence",
+          "step": 3,
+          "status": "completed",
+          "messages_sha256": "0e44d87fafd55aa5b702fcac03d0183fd0ba79b97d312705c8f159654295e754",
+          "response_sha256": "2cbc62e810dd8c174b6802a321514068659e85aaa0cd3103be4ce69ab220e01c",
+          "request_sha256": "14715b68aff247e9e800e15b02ca8525b494adfa234a3622142ec7805c2f5603",
+          "latency_ms": 1931.74,
+          "input_tokens": 4856,
+          "output_tokens": 150,
+          "done_reason": "stop",
+          "load_ms": 5.7385
+        }
+      ]
+    }
+  ],
+  "scope": "Full-file, file-conditioned patch-location hits; oracle-assisted file selection. No repository-wide or leakage-free claim."
+}

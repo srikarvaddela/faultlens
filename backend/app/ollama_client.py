@@ -45,13 +45,18 @@ def inventory():
     return {'connected': True, 'models': models, 'server_version': version}
 
 
-def build_request(model, messages, options, final, source_lines):
+def build_request(model, messages, options, final, source_lines, file_lines=None):
     payload = {'model': model, 'messages': messages, 'stream': False, 'options': options, 'keep_alive': '5m'}
     if final:
         payload['format'] = {
             'type': 'object', 'properties': {'candidates': {'type': 'array', 'minItems': 1, 'maxItems': 3, 'items': {'type': 'object', 'properties': {'line': {'type': 'integer', 'minimum': 1, 'maximum': source_lines}, 'reason': {'type': 'string'}}, 'required': ['line', 'reason'], 'additionalProperties': False}}},
             'required': ['candidates'], 'additionalProperties': False,
         }
+        if file_lines:
+            candidate = payload['format']['properties']['candidates']['items']
+            candidate['properties']['file'] = {'type': 'string', 'enum': list(file_lines)}
+            candidate['properties']['line']['maximum'] = max(file_lines.values())
+            candidate['required'].append('file')
     return payload
 
 

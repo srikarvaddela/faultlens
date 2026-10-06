@@ -13,7 +13,7 @@ The validator reads an existing upstream Git clone without changing it. Each tes
 - The buggy regression test must fail, and the identical test must pass on the fixed version. Import errors, zero tests, timeouts, and failures on both versions do not pass this gate.
 - Python versions, installed package inventories, commands, test-file hashes, raw outputs, output hashes, adjustments, and prior attempt summaries are retained locally.
 
-Fresh reproduction is necessary input validation. It does not certify historical prompt identity, establish semantic accuracy of archived answers, or show that evidence lacks fault-location clues. The next inference input must be independently frozen and reviewed; currently the Prompt lab and Ollama queue accept only the curated fixtures. The real-case panel does not launch model calls.
+Fresh reproduction is necessary input validation. It does not certify historical prompt identity, establish semantic accuracy of archived answers, or show that evidence lacks fault-location clues. Inputs can now be frozen separately for [file-conditioned real-case inference](real-inference.md). The Research readiness panel itself does not launch model calls.
 
 ## Run locally
 

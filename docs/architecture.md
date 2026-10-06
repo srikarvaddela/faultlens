@@ -12,6 +12,11 @@ flowchart LR
     Evidence --> Rank[Ochiai / Tarantula]
     Rank --> Score[Ground-truth scoring]
     Score --> DB
+    Worker --> LocalModel[Local Ollama]
+    LocalModel --> Transcript[Saved requests and responses]
+    Transcript --> DB
+    Freeze[Offline validated-input freezer] --> RealRegistry[(Local real-case registry)]
+    RealRegistry --> API
 ```
 
 ## Request flow

@@ -33,6 +33,7 @@
 
 - [x] Six-case input-readiness audit with pinned source, patch verification, paired regression tests, and local provenance ledger
 - [x] Archived capture commit identity audit across 199 cases
+- [x] Frozen complete real-case files/evidence, strict file/line scoring, and first file-conditioned local comparison with exclusions
 
 - [ ] Document benchmark provenance, licenses, and execution isolation
 - [ ] Reproduce real bugs and retain environment manifests
