@@ -31,6 +31,8 @@
 
 ## 4 — Real-world benchmark
 
+- [x] Corrected regression-asset parity, encoding-locale validation, and paired evidence ablation with superseded-result warnings
+
 - [x] Six-case input-readiness audit with pinned source, patch verification, paired regression tests, and local provenance ledger
 - [x] Archived capture commit identity audit across 199 cases
 - [x] Frozen complete real-case files/evidence, strict file/line scoring, and first file-conditioned local comparison with exclusions

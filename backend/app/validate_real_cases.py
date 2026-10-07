@@ -65,6 +65,19 @@ def linux_path(path):
     return '/mnt/' + absolute[0].lower() + absolute[2:]
 
 
+def copy_regression_assets(repo, metadata, buggy, fixed, directory):
+    names = set(metadata['test_file'].split(';'))
+    names.update(git(repo, 'diff', '--name-only', '--diff-filter=AMR', buggy, fixed, '--', 'tests').decode().splitlines())
+    manifest = []
+    for name in sorted(names):
+        data = git(repo, 'show', f'{fixed}:{name}')
+        target = safe_path(directory, name)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
+        manifest.append({'path': name, 'revision': fixed, 'sha256': sha256(data)})
+    return manifest
+
+
 def parse_recipe(recipe):
     tokens = shlex.split(recipe.strip())
     if len(tokens) < 2 or any(re.search(r'[;&|<>`$]', token) for token in tokens):
@@ -99,11 +112,11 @@ def capture_inventory(captures, benchmark):
             'note': 'Commit identity audit only: matching metadata does not prove an archived failure or historical prompt input.'}
 
 
-def wsl_run(directory, python, args):
+def wsl_run(directory, python, args, extra_env=()):
     started = time.perf_counter()
     command = ['wsl', '-d', 'Ubuntu', '--cd', linux_path(directory), '--exec', 'timeout', '90s',
                'env', 'PYTHONNOUSERSITE=1', 'PYTHONDONTWRITEBYTECODE=1',
-               'PYTHONPATH=' + linux_path(directory), python, *args]
+               'PYTHONPATH=' + linux_path(directory), *extra_env, python, *args]
     result = subprocess.run(command, capture_output=True, timeout=110)
     output = (result.stdout + result.stderr).decode('utf-8', errors='replace')
     return {'argv': command, 'exit_code': result.returncode, 'timeout': result.returncode == 124,
@@ -160,13 +173,11 @@ def validate_case(project, bug_id, args, root):
         omitted = extract_revision(repo, revision, directory)
         if omitted:
             case['deviations'].append({'variant': variant, 'omitted_documentation_symlinks': omitted})
-        for name in metadata['test_file'].split(';'):
-            data = git(repo, 'show', f'{fixed}:{name}')
-            target = safe_path(directory, name)
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_bytes(data)
-            if variant == 'buggy':
-                case['test_files'].append({'path': name, 'revision': fixed, 'sha256': sha256(data)})
+        manifest = copy_regression_assets(repo, metadata, buggy, fixed, directory)
+        if variant == 'buggy':
+            case['test_files'] = manifest
+        elif case['test_files'] != manifest:
+            raise ValueError('Regression asset manifests differ across variants')
         # Upstream black uses a packaging-generated version module. Generate only
         # that inert constant, never execute setup.py or archived helper scripts.
         if project == 'black':
@@ -183,6 +194,10 @@ def validate_case(project, bug_id, args, root):
         if variant == 'buggy':
             case['environment'] = wsl_run(directory, python, ['--version'])
             case['installed_packages'] = wsl_run(directory, python, ['-m', 'pip', 'freeze'])
+        extra_env = ('LC_ALL=C', 'LANG=C', 'PYTHONCOERCECLOCALE=0', 'PYTHONUTF8=0', 'PYTHONIOENCODING=utf-8') if project == 'cookiecutter' and args.ascii_cookiecutter else ()
+        if extra_env and variant == 'buggy':
+            case['deviations'].append('Cookiecutter encoding regression uses LC_ALL=C, LANG=C, PYTHONCOERCECLOCALE=0, PYTHONUTF8=0; stdout remains UTF-8. Locale probe is retained. Both variants receive the same settings.')
+        case.setdefault('locale_probe', {})[variant] = wsl_run(directory, python, ['-c', 'import locale; print(locale.getpreferredencoding(False))'], extra_env)
         modules = [s['path'].removesuffix('.py').replace('/', '.').removesuffix('.__init__') for s in checked if s['path'].endswith('.py')]
         probe = 'import importlib.util,json; print(json.dumps({m:importlib.util.find_spec(m).origin for m in ' + repr(modules) + '}))'
         origin = wsl_run(directory, python, ['-c', probe])
@@ -193,7 +208,7 @@ def validate_case(project, bug_id, args, root):
         except (ValueError, TypeError):
             verified = False
         case.setdefault('source_import_verified', {})[variant] = verified
-        case['fresh_runs'][variant] = wsl_run(directory, python, argv)
+        case['fresh_runs'][variant] = wsl_run(directory, python, argv, extra_env)
     case['status'] = reproduction_status(case['fresh_runs']['buggy'], case['fresh_runs']['fixed'])
     if not all(case['source_import_verified'].values()):
         case['status'] = 'source_import_unverified'
@@ -212,6 +227,7 @@ def main():
     parser.add_argument('--import-id', help='Attach results to this existing local research import')
     parser.add_argument('--public-summary', type=Path, help='Optional allowlisted provenance export without raw traces or local paths')
     parser.add_argument('--previous-report', type=Path, action='append', default=[], help='Retain prior attempts instead of hiding setup failures')
+    parser.add_argument('--ascii-cookiecutter', action='store_true', help='Run the known Cookiecutter encoding regression under a recorded ASCII locale in both variants')
     args = parser.parse_args()
     if args.output.exists():
         parser.error('output must be a fresh directory')
@@ -219,7 +235,7 @@ def main():
     report = {'version': VERSION, 'created_at': datetime.now(timezone.utc).isoformat(),
               'benchmark_revision': git(args.benchmark, 'rev-parse', 'HEAD').decode().strip(),
               'selection': 'Six preselected capture-audit cases: black 1/3, httpie 3, fastapi 14/16, cookiecutter 1. Includes earlier unknown and environment-failure controls.',
-              'cases': [], 'notes': ['Original research repositories are read only. Fresh copies use pinned commits and identical fixed-revision tests.',
+              'cases': [], 'notes': ['Original research repositories are read only. Fresh copies use pinned commits and identical fixed-revision tests plus changed regression assets.',
                   'Existing WSL environments are reused, not benchmark-exact environments. Versions and package inventories are retained.',
                   'Fresh subprocesses are not a sandbox. No archive scripts, setup.sh, tox setup, or model calls run.',
                   'Buggy-fails/fixed-passes is a reproduction gate, not proof of historical prompt identity or leakage-free inputs.']}

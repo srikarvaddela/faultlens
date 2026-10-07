@@ -12,6 +12,8 @@ from .validate_real_cases import safe_path
 
 
 def freeze(report, directory):
+    if report.get('version') != 'faultlens-real-validation-1.1.0':
+        raise ValueError('Revalidate with regression-asset parity before freezing legacy reports')
     bundles = []
     for case in report['cases']:
         bundle = {'case_label': f"{case['project']}#{case['bug_id']}", 'sources': [], 'evidence': {}, 'oracle': [],
@@ -23,6 +25,14 @@ def freeze(report, directory):
         if case.get('ready_for_prompt_review') and case['status'] == 'buggy_fails_fixed_passes':
             if not all(case.get('source_import_verified', {}).get(v) is True for v in ('buggy', 'fixed')):
                 raise ValueError('Source import verification missing')
+            if not case.get('test_files'):
+                raise ValueError('Regression asset manifest missing')
+            for asset in case['test_files']:
+                for variant in ('buggy', 'fixed'):
+                    path = safe_path(directory / f"{case['project']}-{case['bug_id']}" / variant, asset['path'])
+                    if hashlib.sha256(path.read_bytes()).hexdigest() != asset['sha256']:
+                        raise ValueError('Regression asset bytes differ between validation and freezing')
+            bundle['provenance']['regression_assets'] = case['test_files']
             for source in case['sources']:
                 if not source['patch_verified']:
                     raise ValueError('Patch verification missing')

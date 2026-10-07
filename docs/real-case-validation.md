@@ -12,6 +12,7 @@ The validator reads an existing upstream Git clone without changing it. Each tes
 - A Python import-origin probe checks that source modules resolve to the fresh workspace files, rather than an editable installation pointing at an old research checkout.
 - The buggy regression test must fail, and the identical test must pass on the fixed version. Import errors, zero tests, timeouts, and failures on both versions do not pass this gate.
 - Python versions, installed package inventories, commands, test-file hashes, raw outputs, output hashes, adjustments, and prior attempt summaries are retained locally.
+- Changed regression assets, including new fixture files, are copied to both variants and included in the manifest. The freezer verifies them before model registration. Identical test code alone does not establish matched regression environments.
 
 Fresh reproduction is necessary input validation. It does not certify historical prompt identity, establish semantic accuracy of archived answers, or show that evidence lacks fault-location clues. Inputs can now be frozen separately for [file-conditioned real-case inference](real-inference.md). The Research readiness panel itself does not launch model calls.
 

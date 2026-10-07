@@ -67,6 +67,7 @@ class LocalRunRequest(BaseModel):
 class RealPlanRequest(BaseModel):
     case_id: str
     strategy: Literal['single', 'chain_evidence'] = 'single'
+    evidence_mode: Literal['fresh_regression_output', 'exception_type_only'] = 'fresh_regression_output'
 
 
 @app.get('/api/real-cases')
@@ -83,7 +84,7 @@ def create_real_plan(request: RealPlanRequest, session: DB):
     if not case:
         raise HTTPException(404, 'Frozen real case not found')
     try:
-        payload = real_prompting.prepare(case.payload, request.strategy)
+        payload = real_prompting.prepare(case.payload, request.strategy, request.evidence_mode)
     except ValueError as exc:
         raise HTTPException(422, str(exc)) from exc
     session.add(PromptPlan(id=payload['id'], created_at=payload['created_at'], payload=payload))
@@ -105,7 +106,15 @@ def create_local_run(request: LocalRunRequest, session: DB):
     if not saved:
         raise HTTPException(404, 'Prompt plan not found')
     plan = deepcopy(saved.payload)
-    if plan['prompt_version'] != (real_prompting.VERSION if plan.get('kind') == 'real' else VERSION):
+    if plan.get('kind') == 'real':
+        case = session.get(RealCase, plan['real_case_id'])
+        try:
+            if not case:
+                raise ValueError('Registered real case missing')
+            real_prompting.verify(plan, case.payload)
+        except ValueError as exc:
+            raise HTTPException(409, str(exc)) from exc
+    if plan['prompt_version'] not in (real_prompting.SUPPORTED_VERSIONS if plan.get('kind') == 'real' else (VERSION,)):
         raise HTTPException(409, 'Prepare a plan with the current prompt version')
     try:
         inventory = ollama_client.inventory()
@@ -133,7 +142,7 @@ def create_local_run(request: LocalRunRequest, session: DB):
 @app.get('/api/ollama/runs')
 def list_local_runs(session: DB):
     rows = session.scalars(select(InferenceRun).order_by(InferenceRun.created_at.desc()).limit(100)).all()
-    return [{'id': run.id, 'created_at': run.created_at, 'model': run.payload['model_identity']['name'], 'bug_id': run.payload['plans'][0]['bug_id'], 'status': session.get(Job, run.id).status} for run in rows]
+    return [{'id': run.id, 'created_at': run.created_at, 'model': run.payload['model_identity']['name'], 'bug_id': run.payload['plans'][0]['bug_id'], 'evidence_mode': run.payload['plans'][0]['evidence_mode'], 'status': session.get(Job, run.id).status} for run in rows]
 
 
 @app.get('/api/ollama/runs/{run_id}')
@@ -142,7 +151,10 @@ def get_local_run(run_id: str, session: DB):
     if not run:
         raise HTTPException(404, 'Local inference run not found')
     job = session.get(Job, run_id)
-    return {**run.payload, 'status': job.status, 'cancel_requested': job.cancel_requested, 'kind': run.payload['plans'][0].get('kind', 'curated')}
+    plan = run.payload['plans'][0]
+    case = session.get(RealCase, plan['real_case_id']) if plan.get('kind') == 'real' else None
+    warning = case.payload.get('validation_warning') if case else None
+    return {**run.payload, 'status': job.status, 'cancel_requested': job.cancel_requested, 'kind': plan.get('kind', 'curated'), 'validation_warning': warning}
 
 
 @app.get('/api/ollama/runs/{run_id}/export')

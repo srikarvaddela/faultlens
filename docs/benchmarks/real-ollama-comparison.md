@@ -1,5 +1,7 @@
 # First real-case Ollama comparison
 
+**Correction:** Cookiecutter's earlier failure was caused by a missing added regression fixture. Its results and this table's aggregate scores are superseded for research interpretation. Original measurements remain for audit. Use the [corrected evidence ablation](real-evidence-ablation.md), with matching assets and the intended encoding failure.
+
 FaultLens ran one single-prompt versus three-step comparison for each eligible frozen real case. All **12 model calls completed**, and **six final rankings passed the strict file-and-line parser**. This is a small pipeline baseline, not evidence of a general improvement.
 
 Model: `llama3.2:1b`, digest `baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878`, Ollama `0.35.1`. Both methods use temperature 0, seed 42, a 32,768-token requested context, and 256 output tokens per call. An Ollama running-model check observed an allocated context of 32,768. Versioned prompts are `faultlens-real-prompts-1.0.0`.

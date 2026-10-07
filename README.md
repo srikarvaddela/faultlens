@@ -81,6 +81,8 @@ The Research view also supports [fresh real-case validation](docs/real-case-vali
 
 ## Prepare reproducible prompt inputs
 
+The [corrected evidence ablation](docs/benchmarks/real-evidence-ablation.md) compares full traces with exception-type-only evidence on three real cases. It also corrects a missing-fixture confound in the earlier Cookiecutter run; prior reports are marked superseded. [Workflow and guards](docs/evidence-ablation.md) retain matched assets, evidence lineage, exclusions, and historical warnings.
+
 Open **Prompt lab** to prepare a single-prompt or three-step plan from a curated case. Preparing plans preserves evidence, prompt versions, exact first-step messages, and hashes without making model calls. You can then run a local Ollama comparison and inspect every saved call and response. Later messages require actual prior responses. See [prompt-plan methodology](docs/prompt-plans.md) and [local Ollama setup](docs/ollama.md).
 
 ## Local model benchmark

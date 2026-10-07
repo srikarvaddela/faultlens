@@ -10,7 +10,7 @@ from uuid import uuid4
 from sqlalchemy import update
 
 from .catalog import BY_ID
-from .database import InferenceRun, Job
+from .database import InferenceRun, Job, RealCase
 from .jobs import owned, heartbeat, LEASE_SECONDS, job_view
 from . import ollama_client
 from .prompting import digest, render_step, parse_ranking, VERSION
@@ -86,7 +86,11 @@ def run_owned(factory, job_id, token):
             real = plan.get('kind') == 'real'
             if real:
                 try:
-                    real_prompting.verify(plan)
+                    with factory() as session:
+                        case = session.get(RealCase, plan['real_case_id'])
+                        if not case:
+                            raise ValueError('Registered real case missing')
+                        real_prompting.verify(plan, case.payload)
                 except ValueError as exc:
                     raise ollama_client.OllamaError(str(exc)) from exc
             elif plan['prompt_version'] != VERSION or hashlib.sha256(BY_ID[plan['bug_id']]['source'].encode()).hexdigest() != plan['source_sha256']:

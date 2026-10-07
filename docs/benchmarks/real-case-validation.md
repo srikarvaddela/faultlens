@@ -1,5 +1,7 @@
 # Real-case validation results
 
+**Correction:** The original Cookiecutter gate was confounded by a JSON fixture present only in the fixed checkout. [Corrected metadata](real-case-validation-corrected.json) copies changed assets to both variants and records the encoding-regression locale. The corrected failure is an encoding error; earlier missing-file results are superseded. Five cases still pass the corrected reproduction gate.
+
 Six cases were selected before fresh reproduction: the same cases used for earlier capture spot checks, including missing-function and runner-failure controls. This is an input-readiness audit, not an LLM accuracy benchmark.
 
 BugsInPy revision: `11c5f1eea954a42132cfd06bf257766a7963e0fd`. The [machine-readable provenance summary](real-case-validation.json) includes pinned buggy/fixed revisions, source and test hashes, patch-derived targets, license links, outcomes, setup adjustments, and earlier attempt statuses.

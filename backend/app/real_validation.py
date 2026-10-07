@@ -3,7 +3,7 @@ import ast
 import hashlib
 import re
 
-VERSION = 'faultlens-real-validation-1.0.0'
+VERSION = 'faultlens-real-validation-1.1.0'
 HUNK = re.compile(r'^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@')
 SETUP_FAILURE = re.compile(r'ImportError|ModuleNotFoundError|command not found|ERROR collecting|collected 0 items|Ran 0 tests|No module named|not found:|unrecognized arguments', re.I)
 
@@ -103,6 +103,7 @@ def public_summary(report):
         exported = {key: case[key] for key in keys if key in case}
         exported['test_outcomes'] = {name: {key: run[key] for key in ('exit_code', 'timeout', 'output_sha256', 'latency_ms')}
                                      for name, run in case.get('fresh_runs', {}).items()}
+        exported['locale_encodings'] = {variant: probe.get('output', '').strip() if probe.get('output', '').strip() in ('ANSI_X3.4-1968', 'UTF-8', 'utf-8', 'US-ASCII', 'ascii') else 'unavailable' for variant, probe in case.get('locale_probe', {}).items()}
         cases.append(exported)
     return {'version': report['version'], 'created_at': report['created_at'],
             'benchmark_revision': report['benchmark_revision'], 'selection': report['selection'],

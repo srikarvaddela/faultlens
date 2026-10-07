@@ -30,6 +30,8 @@ If multiple frozen snapshots of the same bug are registered, the runner stops ra
 
 ## Context, parsing, and scoring
 
+Real plans now also support [exception-type-only evidence ablation](evidence-ablation.md). New freezing requires corrected validator version 1.1.0 and matching regression assets. API/worker checks block superseded snapshots; historical records remain readable with warnings. The [corrected ablation](benchmarks/real-evidence-ablation.md) supersedes the earlier Cookiecutter measurements.
+
 Real plans request 32K context and 256 output tokens, with seed 42 and temperature zero. A conservative UTF-8-byte-count preflight reserves space for intermediate responses and output; it is an estimate, not an exact tokenizer count. Every materialized call is checked again before sending. Complete files exceeding the budget are excluded. There is no ground-truth-centered source cropping. Native prompt token counts are retained. [Ollama's context guidance](https://docs.ollama.com/context-length) describes allocated context inspection and memory tradeoffs.
 
 Final structured output includes an exact file name from the supplied files, an integer line within that particular file, and a reason. The parser rejects unknown files, out-of-range or boolean lines, duplicate file/line pairs, malformed JSON, and extra fields. Ollama's JSON schema constrains generation; the application parser still validates every final answer. See [structured outputs](https://docs.ollama.com/capabilities/structured-outputs).

@@ -79,6 +79,7 @@ def test_real_queue_saves_requests_before_calls_and_feeds_actual_chain_responses
     identity = {'name': 'synthetic-local', 'digest': 'hash'}
     monkeypatch.setattr(ollama_client, 'inventory', lambda: {'models': [identity], 'server_version': 'test'})
     with factory() as session:
+        session.add(RealCase(id='synthetic-real', created_at='now', payload=bundle()))
         run_id = enqueue_run(session, plans, identity, 'test')['id']
     seen = []
     def chat(request):
@@ -124,19 +125,45 @@ def test_api_rejects_exclusions_and_prepares_registered_real_inputs(factory):
         app.dependency_overrides.pop(get_session, None)
 
 
+def test_worker_blocks_withdrawn_input_before_any_model_call(factory, monkeypatch):
+    item = bundle()
+    plans = [real_prompting.prepare(item)]
+    identity = {'name': 'synthetic-local', 'digest': 'hash'}
+    with factory() as session:
+        session.add(RealCase(id=item['id'], created_at='now', payload={**item, 'status': 'excluded', 'reason': 'Withdrawn missing fixture'}))
+        run_id = enqueue_run(session, plans, identity, 'test')['id']
+    monkeypatch.setattr(ollama_client, 'inventory', lambda: {'models': [identity], 'server_version': 'test'})
+    monkeypatch.setattr(ollama_client, 'chat', lambda _: pytest.fail('withdrawn inputs must never reach the provider'))
+    process_one(factory)
+    with factory() as session:
+        assert session.get(Job, run_id).status == 'failed'
+        saved = session.get(InferenceRun, run_id).payload
+        assert saved['calls'] == []
+        assert 'Withdrawn' in saved['error']
+
+
 def test_freeze_accepts_only_newline_materialization_and_rejects_changed_source(tmp_path):
     case_dir = tmp_path / 'example-1/buggy'
     case_dir.mkdir(parents=True)
     (case_dir / 'module.py').write_bytes(b'v = 1\r\n')
+    for variant in ('buggy', 'fixed'):
+        fixture = tmp_path / f'example-1/{variant}/tests/fixture.json'
+        fixture.parent.mkdir(parents=True, exist_ok=True)
+        fixture.write_bytes(b'{"value":1}')
     output = 'FAILED regression test'
     case = {'project': 'example', 'bug_id': '1', 'status': 'buggy_fails_fixed_passes', 'ready_for_prompt_review': True,
         'source_import_verified': {'buggy': True, 'fixed': True}, 'sources': [{'path': 'module.py', 'patch_verified': True,
         'sha256': hashlib.sha256(b'v = 1\n').hexdigest(), 'targets': [{'line': 1, 'kind': 'removed_line'}]}],
-        'fresh_runs': {'buggy': {'output': output, 'output_sha256': hashlib.sha256(output.encode()).hexdigest()}}}
-    report = {'benchmark_revision': 'test', 'cases': [case]}
+        'fresh_runs': {'buggy': {'output': output, 'output_sha256': hashlib.sha256(output.encode()).hexdigest()}},
+        'test_files': [{'path': 'tests/fixture.json', 'sha256': hashlib.sha256(b'{"value":1}').hexdigest()}]}
+    report = {'version': 'faultlens-real-validation-1.1.0', 'benchmark_revision': 'test', 'cases': [case]}
     result = freeze(report, tmp_path)[0]
     assert result['sources'][0]['content'] == 'v = 1\n'
     assert result['provenance']['source_materialization'][0]['crlf_normalized']
     (case_dir / 'module.py').write_bytes(b'v = 99\r\n')
     with pytest.raises(ValueError, match='source bytes changed'):
+        freeze(report, tmp_path)
+    (case_dir / 'module.py').write_bytes(b'v = 1\r\n')
+    (tmp_path / 'example-1/fixed/tests/fixture.json').write_bytes(b'{"value":2}')
+    with pytest.raises(ValueError, match='Regression asset bytes'):
         freeze(report, tmp_path)

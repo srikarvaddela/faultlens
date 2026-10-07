@@ -446,5 +446,11 @@
       ]
     }
   ],
-  "scope": "Full-file, file-conditioned patch-location hits; oracle-assisted file selection. No repository-wide or leakage-free claim."
+  "scope": "Full-file, file-conditioned patch-location hits; oracle-assisted file selection. No repository-wide or leakage-free claim.",
+  "data_quality_notice": {
+    "affected_case": "cookiecutter#1",
+    "disposition": "Superseded: missing added regression JSON fixture confounded the buggy failure as FileNotFoundError.",
+    "replacement_report": "real-evidence-ablation.md",
+    "correction": "Changed regression assets now match in both variants; ASCII locale is recorded; corrected failure is an encoding error."
+  }
 }

@@ -1,6 +1,6 @@
 {
-  "version": "faultlens-real-validation-1.0.0",
-  "created_at": "2026-10-06T21:41:26.938473+00:00",
+  "version": "faultlens-real-validation-1.1.0",
+  "created_at": "2026-10-07T01:53:40.507918+00:00",
   "benchmark_revision": "11c5f1eea954a42132cfd06bf257766a7963e0fd",
   "selection": "Six preselected capture-audit cases: black 1/3, httpie 3, fastapi 14/16, cookiecutter 1. Includes earlier unknown and environment-failure controls.",
   "capture_commit_counts": {
@@ -110,15 +110,19 @@
         "buggy": {
           "exit_code": 1,
           "timeout": false,
-          "output_sha256": "70a889b244bfde87a1fa1956d3366a6af8ed6187f18ae593016e11c53740d1ff",
-          "latency_ms": 791.45
+          "output_sha256": "5e4aadf4868992d07bca7760e27ced6369880ee1850dc1f565c3aaebc37df377",
+          "latency_ms": 2250.89
         },
         "fixed": {
           "exit_code": 0,
           "timeout": false,
-          "output_sha256": "4edec9068fbf6abe4f1945001b30397eccb9e901cc040512ea90454f11073c5f",
-          "latency_ms": 1033.2
+          "output_sha256": "8ca8405d04188c2a5455a34d1baa71f52d68593c7fdc6e94784d1471e2cd90d4",
+          "latency_ms": 1939.93
         }
+      },
+      "locale_encodings": {
+        "buggy": "UTF-8",
+        "fixed": "UTF-8"
       }
     },
     {
@@ -176,15 +180,19 @@
         "buggy": {
           "exit_code": 1,
           "timeout": false,
-          "output_sha256": "d64ac8a3bc85a9b6a02de0f587d1ce87b2fdbfb41ad1f86e7dc57a803c808a14",
-          "latency_ms": 2026.44
+          "output_sha256": "d603f0ebc20daf9daa9b5f48f4da53a55d23405f3938c7180298fe0ee99ec9e6",
+          "latency_ms": 7213.48
         },
         "fixed": {
           "exit_code": 0,
           "timeout": false,
-          "output_sha256": "0069e780bd8dd52cd030392e2af05bb29b82c88493ae99e5cf68ef1629d4988d",
-          "latency_ms": 1448.6
+          "output_sha256": "ae4d43dc9d09fbbf5da16b4a7c47c73387e80a2ade43372e5f55234e1459e10e",
+          "latency_ms": 5285.92
         }
+      },
+      "locale_encodings": {
+        "buggy": "UTF-8",
+        "fixed": "UTF-8"
       }
     },
     {
@@ -297,15 +305,19 @@
         "buggy": {
           "exit_code": 1,
           "timeout": false,
-          "output_sha256": "2455f7eb5f3604c9656703e713a29aba7368f2307e336ce4a40c72c527ecab03",
-          "latency_ms": 908.63
+          "output_sha256": "115e2244e1291b9db1fe15d014b4f039c799f97d4cfe4c8fbe07f6f9e7c0a591",
+          "latency_ms": 3949.54
         },
         "fixed": {
           "exit_code": 0,
           "timeout": false,
-          "output_sha256": "4c5c733fbe215e4879bbfca9051c5443baa81fb4a27e2aeba865fda78df165f1",
-          "latency_ms": 747.0
+          "output_sha256": "7cd95482fbc7795c36d5e6c62ff4427a24fce9fe73d2126acd53c817fd2c5c77",
+          "latency_ms": 3268.91
         }
+      },
+      "locale_encodings": {
+        "buggy": "UTF-8",
+        "fixed": "UTF-8"
       }
     },
     {
@@ -347,6 +359,11 @@
       ],
       "test_files": [
         {
+          "path": "tests/test-generate-context/non_ascii.json",
+          "revision": "7f6804c4953a18386809f11faf4d86898570debc",
+          "sha256": "6241504170e1a3afc5bd58f0d9e07b77014681c23c759bb86b22831195988ad5"
+        },
+        {
           "path": "tests/test_generate_context.py",
           "revision": "7f6804c4953a18386809f11faf4d86898570debc",
           "sha256": "370bcf475b890e24d3dff5c556a78d604e59f3fbe1854e5dbece9e0e3de59481"
@@ -371,6 +388,7 @@
             "docs/case_studies.md"
           ]
         },
+        "Cookiecutter encoding regression uses LC_ALL=C, LANG=C, PYTHONCOERCECLOCALE=0, PYTHONUTF8=0; stdout remains UTF-8. Locale probe is retained. Both variants receive the same settings.",
         {
           "variant": "fixed",
           "omitted_documentation_symlinks": [
@@ -388,15 +406,19 @@
         "buggy": {
           "exit_code": 1,
           "timeout": false,
-          "output_sha256": "b62a266476a2ff94e29cefb826b09b6f38e960cbcd1253acfa5922139336e1cc",
-          "latency_ms": 1140.14
+          "output_sha256": "784637417456419d0b9a6115f40598a548d6e4c06899584afaa272249e6007ff",
+          "latency_ms": 2335.96
         },
         "fixed": {
           "exit_code": 0,
           "timeout": false,
-          "output_sha256": "dc3d50693e2f50b95455c2ee9a43a2946510ff62175f729cad38795659519260",
-          "latency_ms": 1748.55
+          "output_sha256": "2e32c4f4b3697e3b6929a6a8a2047a02c2b023fdc08d36c781a544db3319fb85",
+          "latency_ms": 1152.65
         }
+      },
+      "locale_encodings": {
+        "buggy": "ANSI_X3.4-1968",
+        "fixed": "ANSI_X3.4-1968"
       }
     },
     {
@@ -493,15 +515,19 @@
         "buggy": {
           "exit_code": 1,
           "timeout": false,
-          "output_sha256": "5a0ba3e359af944910f2c8251b7145ecef428df6ac3db2e1370afe624bce9c90",
-          "latency_ms": 719.67
+          "output_sha256": "a9a7584b6eaa676b87e2b5338df95fed15a44d6b1d85d2e0591b12f5780eaf48",
+          "latency_ms": 2442.83
         },
         "fixed": {
           "exit_code": 0,
           "timeout": false,
-          "output_sha256": "ec350df90564a6134805fd24c31e86f8065e3781c3e0777110f7e2b960cda3c1",
-          "latency_ms": 849.49
+          "output_sha256": "014bb69283d3357871ae41f464a58654b212aab2b2b901b6661070b84ca79ee0",
+          "latency_ms": 1654.26
         }
+      },
+      "locale_encodings": {
+        "buggy": "UTF-8",
+        "fixed": "UTF-8"
       }
     },
     {
@@ -569,94 +595,26 @@
         "buggy": {
           "exit_code": 1,
           "timeout": false,
-          "output_sha256": "99068d0471222f737d5107cffb4a11e0d43f194797c54d2a0f6868f950182b63",
-          "latency_ms": 987.69
+          "output_sha256": "fbe48dcdfc70877492b4b3209ec9a9c45f652d4e82f9b6d5f97adc7a136ec0e4",
+          "latency_ms": 4820.1
         },
         "fixed": {
           "exit_code": 1,
           "timeout": false,
-          "output_sha256": "d0d37f1ea696b91f2d91fb1c8025e955115574a24096029cff5710a26955670f",
-          "latency_ms": 890.11
+          "output_sha256": "73af5a0f1e5c44482d60e28a732b2fcefca9c262512e24d2bdb74cefdc13b977",
+          "latency_ms": 3564.37
         }
+      },
+      "locale_encodings": {
+        "buggy": "UTF-8",
+        "fixed": "UTF-8"
       }
     }
   ],
   "previous_attempts": [
     {
-      "report_sha256": "31da69847372bd522c606579ea57b6cec28730dd56b72984bffcd1048c2961da",
-      "created_at": "2026-10-06T21:37:51.805678+00:00",
-      "cases": [
-        {
-          "project": "black",
-          "bug_id": "1",
-          "status": "validation_error"
-        },
-        {
-          "project": "httpie",
-          "bug_id": "3",
-          "status": "buggy_fails_fixed_passes"
-        },
-        {
-          "project": "fastapi",
-          "bug_id": "16",
-          "status": "buggy_fails_fixed_passes"
-        },
-        {
-          "project": "cookiecutter",
-          "bug_id": "1",
-          "status": "validation_error"
-        },
-        {
-          "project": "black",
-          "bug_id": "3",
-          "status": "validation_error"
-        },
-        {
-          "project": "fastapi",
-          "bug_id": "14",
-          "status": "unconfirmed_failure"
-        }
-      ]
-    },
-    {
-      "report_sha256": "e2a980eb97c2e89fbbb04855c0d188926eccf95a76c75ba8ac0ad6a41a1d5c04",
-      "created_at": "2026-10-06T21:38:48.408991+00:00",
-      "cases": [
-        {
-          "project": "black",
-          "bug_id": "1",
-          "status": "buggy_fails_fixed_passes"
-        },
-        {
-          "project": "httpie",
-          "bug_id": "3",
-          "status": "buggy_fails_fixed_passes"
-        },
-        {
-          "project": "fastapi",
-          "bug_id": "16",
-          "status": "buggy_fails_fixed_passes"
-        },
-        {
-          "project": "cookiecutter",
-          "bug_id": "1",
-          "status": "environment_failure"
-        },
-        {
-          "project": "black",
-          "bug_id": "3",
-          "status": "environment_failure"
-        },
-        {
-          "project": "fastapi",
-          "bug_id": "14",
-          "status": "both_revisions_fail"
-        }
-      ]
-    },
-    {
-      "report_sha256": "338d54451a321e9bfb3859a82d137c5383b0e77ce3e86567652356ad78885cbf",
-      "created_at": "2026-10-06T21:39:48.844888+00:00",
+      "report_sha256": "9a54fe62f2c38a76dacd924c35534b251b5476e8f0a307e1001f83c7b6209a7d",
+      "created_at": "2026-10-06T21:41:26.938473+00:00",
       "cases": [
         {
           "project": "black",
@@ -692,16 +650,9 @@
     }
   ],
   "notes": [
-    "Original research repositories are read only. Fresh copies use pinned commits and identical fixed-revision tests.",
+    "Original research repositories are read only. Fresh copies use pinned commits and identical fixed-revision tests plus changed regression assets.",
     "Existing WSL environments are reused, not benchmark-exact environments. Versions and package inventories are retained.",
     "Fresh subprocesses are not a sandbox. No archive scripts, setup.sh, tox setup, or model calls run.",
-    "Buggy-fails/fixed-passes is a reproduction gate, not proof of historical prompt identity or leakage-free inputs.",
-    "Both old patch context and the complete patched file were checked against pinned buggy/fixed blobs. Removed old lines and additive anchors are separately marked; AST function names are derived from the original source."
-  ],
-  "data_quality_notice": {
-    "affected_case": "cookiecutter#1",
-    "disposition": "Superseded: missing added regression JSON fixture confounded the buggy failure as FileNotFoundError.",
-    "replacement_report": "real-evidence-ablation.md",
-    "correction": "Changed regression assets now match in both variants; ASCII locale is recorded; corrected failure is an encoding error."
-  }
+    "Buggy-fails/fixed-passes is a reproduction gate, not proof of historical prompt identity or leakage-free inputs."
+  ]
 }

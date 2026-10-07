@@ -6,8 +6,10 @@ import json
 from uuid import uuid4
 
 from .prompting import SYSTEM, digest, render_step
+from . import evidence_ablation
 
-VERSION = 'faultlens-real-prompts-1.0.0'
+VERSION = 'faultlens-real-prompts-1.1.0'
+SUPPORTED_VERSIONS = (VERSION, 'faultlens-real-prompts-1.0.0')
 OPTIONS = {'temperature': 0, 'seed': 42, 'num_predict': 256, 'num_ctx': 32768}
 FINAL = 'Return only a JSON object with a "candidates" array. Rank up to three distinct source locations, most suspicious first. Each candidate must have an exact "file" path from the supplied source, an integer "line" in that file, and a short "reason". Do not propose fixes.'
 
@@ -21,8 +23,8 @@ def budget_check(messages, reserve=0):
     return bound
 
 
-def verify(plan):
-    if plan['prompt_version'] != VERSION:
+def verify(plan, bundle=None):
+    if plan['prompt_version'] not in SUPPORTED_VERSIONS:
         raise ValueError('Real prompt version changed')
     for source in plan['sources']:
         if hashlib.sha256(source['content'].encode()).hexdigest() != source['sha256']:
@@ -35,22 +37,34 @@ def verify(plan):
         raise ValueError('Materialized first prompt differs from frozen input')
     if digest(plan['scoring_oracle']) != plan['oracle_sha256']:
         raise ValueError('Frozen scoring oracle hash mismatch')
+    if bundle is not None:
+        if bundle['status'] != 'ready':
+            raise ValueError(bundle.get('reason') or 'Real-case validation has been withdrawn')
+        mode = plan.get('evidence_mode', 'fresh_regression_output')
+        if digest(evidence_ablation.transform(bundle['evidence'], mode)) != plan['evidence_sha256']:
+            raise ValueError('Evidence does not match the registered transform')
+        if digest(bundle['sources']) != plan['source_sha256'] or digest(bundle['oracle']) != plan['oracle_sha256']:
+            raise ValueError('Registered source or oracle mismatch')
+        if plan.get('evidence_parent_sha256', digest(bundle['evidence'])) != digest(bundle['evidence']):
+            raise ValueError('Parent evidence lineage mismatch')
 
 
 def numbered_source(sources):
     return '\n\n'.join('File: ' + source['path'] + '\n' + '\n'.join(f'{index}: {line}' for index, line in enumerate(source['content'].splitlines(), 1)) for source in sources)
 
 
-def prepare(bundle, strategy='single'):
+def prepare(bundle, strategy='single', evidence_mode='fresh_regression_output'):
     if bundle['status'] != 'ready' or strategy not in ('single', 'chain_evidence'):
         raise ValueError(bundle.get('reason') or 'Real case is not ready')
+    evidence = evidence_ablation.transform(bundle['evidence'], evidence_mode)
     plan = {'id': str(uuid4()), 'created_at': datetime.now(timezone.utc).isoformat(),
         'kind': 'real', 'bug_id': bundle['case_label'], 'real_case_id': bundle['id'],
         'prompt_version': VERSION, 'status': 'prepared_no_inference', 'strategy': strategy,
-        'evidence_mode': 'fresh_regression_output', 'carry_evidence': True,
+        'evidence_mode': evidence_mode, 'carry_evidence': True,
         'sources': deepcopy(bundle['sources']), 'source': numbered_source(bundle['sources']),
-        'source_sha256': digest(bundle['sources']), 'evidence': deepcopy(bundle['evidence']),
-        'evidence_sha256': digest(bundle['evidence']), 'scoring_oracle': deepcopy(bundle['oracle']),
+        'source_sha256': digest(bundle['sources']), 'evidence': evidence,
+        'evidence_sha256': digest(evidence), 'evidence_parent_sha256': digest(bundle['evidence']),
+        'evidence_transform_version': evidence_ablation.VERSION, 'scoring_oracle': deepcopy(bundle['oracle']),
         'oracle_sha256': digest(bundle['oracle']), 'system_instruction': SYSTEM,
         'final_output_instruction': FINAL,
         'steps': ['Localize fault'] if strategy == 'single' else ['Understand failure', 'Identify suspicious locations', 'Localize fault'],
@@ -60,6 +74,8 @@ def prepare(bundle, strategy='single'):
             'Failure output may reveal target names or lines. Evidence is not certified leakage-free; no historical study reproduction is claimed.',
             'Patch-location hit scores any removed old-file line or marked additive anchor; it does not grade explanation correctness.',
         ]}
+    if evidence_mode == 'exception_type_only':
+        plan['notes'].append('Evidence ablation retains only recognized built-in exception types. This removes trace text, not all possible source or file-selection clues; it does not certify leakage-free inputs.')
     plan['first_messages'] = render_step(plan, 0, [])
     plan['first_messages_sha256'] = digest(plan['first_messages'])
     plan['plan_sha256'] = digest({k: v for k, v in plan.items() if k not in ('id', 'created_at')})
